@@ -6,3 +6,5 @@ RSpec.configure do |config|
     refuse_coverage_drop
   end
 end
+
+require 'dsl/maker'
