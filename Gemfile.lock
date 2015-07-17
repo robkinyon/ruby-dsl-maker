@@ -27,6 +27,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  docile
   rspec
   simplecov
 

@@ -22,4 +22,26 @@ describe 'Single-level DSL' do
       expect(pizza.send(topping)).to be_nil
     end
   end
+
+  it 'makes a cheese pizza' do
+    dsl_class = Class.new(DSL::Maker) do
+      add_entrypoint(:pizza, {
+        :cheese => true,
+      }) do
+        Pizza.new(cheese)
+      end
+    end
+
+    pizza = dsl_class.parse_dsl('pizza { cheese }')
+    expect(pizza).to be_instance_of(Pizza)
+
+    toppings.each do |topping|
+      case topping
+        when :cheese
+          expect(pizza.send(topping)).to be(true)
+        else
+          expect(pizza.send(topping)).to be_nil
+      end
+    end
+  end
 end
