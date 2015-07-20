@@ -11,9 +11,12 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = '>= 1.8.7'
 
+  s.add_dependency 'docile'
+
   # Run rspec tests from rake
   s.add_development_dependency 'rake'
   s.add_development_dependency 'rspec', '~> 3.0.0'
+  s.add_development_dependency 'simplecov'
 
   # NOTE: needed for Travis builds on 1.8, but can't yet reproduce failure locally
   s.add_development_dependency 'mime-types' , '~> 1.25.1' if on_1_8?
