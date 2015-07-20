@@ -1,3 +1,5 @@
+require 'dsl/maker/version'
+
 require 'docile'
 
 module DSL
