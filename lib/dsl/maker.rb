@@ -9,10 +9,17 @@ module DSL
     def self.generate_dsl(args={})
       Class.new do
         args.each do |name, type|
-          define_method(name.to_sym) do
-            as_attr = '@' + name.to_s
-            instance_variable_set(as_attr, true)
-            instance_variable_get(as_attr)
+          as_attr = '@' + name.to_s
+          if type == String
+            define_method(name.to_sym) do |*args|
+              instance_variable_set(as_attr, args[0].to_s) unless args.empty?
+              instance_variable_get(as_attr)
+            end
+          else
+            define_method(name.to_sym) do |*args|
+              instance_variable_set(as_attr, true)
+              instance_variable_get(as_attr)
+            end
           end
         end
       end
@@ -21,6 +28,7 @@ module DSL
     def self.add_entrypoint(name, args={}, &definition_block)
       # Without definition_block, there's no way to give back the result of the
       # DSL parsing. So, raise an error if we don't get one.
+      # TODO: Provide a default block that returns the datastructure as a HoH.
       raise "Block required for add_entrypoint" unless definition_block
 
       # Ensure that get_binding() exists in the child class.
