@@ -67,9 +67,7 @@ module DSL
             end
           elsif type.is_a?(Class) and type.ancestors.include?(Boolean)
             define_method(name.to_sym) do |*args, &dsl_block|
-              # FIXME: Ensure dsl_block exists
-
-              unless (args.empty? && !dsl_block)
+              if dsl_block
                 obj = type.new
                 Docile.dsl_eval(obj, &dsl_block)
                 ___set(as_attr, obj.apply(*args))
