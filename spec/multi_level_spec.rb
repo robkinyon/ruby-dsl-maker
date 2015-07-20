@@ -3,7 +3,7 @@
 # Notes:
 # 1. Because we're creating classes on the fly, we must fully-qualify the Boolean
 # class name. If we created real classes, the context would be provided for us.
-describe 'Multi-level DSL' do
+describe 'A multi-level DSL making family-trees' do
   Person = Struct.new(:name, :child)
 
   it "can handle a simple single-level parse of a two-level DSL" do

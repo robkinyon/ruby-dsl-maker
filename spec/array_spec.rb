@@ -1,6 +1,6 @@
 # This will use a DSL that creates a list of tasks
 
-describe "A DSL with an array" do
+describe "A DSL with an array making tasklists" do
   TaskList = Struct.new(:tasks)
 
   dsl_class = Class.new(DSL::Maker) do

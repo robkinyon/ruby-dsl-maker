@@ -38,8 +38,8 @@ module DSL
       klass.class_eval do
         # This method exists because we cannot seem to inline this method's work
         # where we call it. Could it be a problem of incorrect binding?
-        define_method(:apply) do
-          instance_exec(&defn_block)
+        define_method(:apply) do |*args|
+          instance_exec(*args, &defn_block)
         end
 
         args.each do |name, type|
@@ -70,9 +70,10 @@ module DSL
               # FIXME: Ensure dsl_block exists
 
               unless (args.empty? && !dsl_block)
-                obj = type.new(*args)
+                obj = type.new
                 Docile.dsl_eval(obj, &dsl_block)
-                ___set(as_attr, obj.apply())
+                ___set(as_attr, obj.apply(*args))
+                #___set(as_attr, obj.instance_exec(*args, &defn_block))
               end
 
               ___get(as_attr)
@@ -100,14 +101,14 @@ module DSL
 
       # FIXME: This is a wart. Really, we should be pulling out name, then
       # yielding to generate_dsl() in some fashion.
-      kls = generate_dsl(args) {}
+      dsl_class = generate_dsl(args) {}
 
-      define_singleton_method(name.to_sym) do |&dsl_block|
-        obj = kls.new
+      define_singleton_method(name.to_sym) do |*args, &dsl_block|
+        obj = dsl_class.new
         Docile.dsl_eval(obj, &dsl_block) if dsl_block
-        return obj.instance_exec(&defn_block)
+        return obj.instance_exec(*args, &defn_block)
       end
-      return kls
+      return dsl_class
     end
   end
 end

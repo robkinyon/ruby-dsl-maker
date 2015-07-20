@@ -10,7 +10,7 @@
 # Notes:
 # 1. Because we're creating classes on the fly, we must fully-qualify the Boolean
 # class name. If we created real classes, the context would be provided for us.
-describe 'Single-level DSL' do
+describe 'A single-level DSL for pizza' do
   $toppings = [:cheese, :pepperoni, :bacon, :sauce]
   Pizza = Struct.new(*$toppings)
 
