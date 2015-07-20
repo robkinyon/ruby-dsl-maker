@@ -9,6 +9,16 @@ describe "DSL::Maker validation" do
     }.to raise_error('Block required for add_entrypoint')
   end
 
+  it "requires a block for :generate_dsl" do
+    expect {
+      Class.new(DSL::Maker) do
+        add_entrypoint(:first, {
+          :second => generate_dsl({})
+        }) {}
+      end
+    }.to raise_error('Block required for generate_dsl')
+  end
+
   it "requires a recognized type for attributes" do
     expect {
       Class.new(DSL::Maker) do
