@@ -48,7 +48,16 @@ describe 'Single-level DSL' do
       end
     end
 
-    pizza = dsl_class.parse_dsl('pizza { sauce :extra }')
-    verify_pizza(pizza, :sauce => 'extra')
+    [ :extra, 'extra', :none ].each do |level|
+      pizza = case level
+        when String
+          dsl_class.parse_dsl("pizza { sauce '#{level}' }")
+        when Symbol
+          dsl_class.parse_dsl("pizza { sauce :#{level} }")
+        else
+          raise "Unexpected class #{level.class}"
+      end
+      verify_pizza(pizza, :sauce => level.to_s)
+    end
   end
 end
