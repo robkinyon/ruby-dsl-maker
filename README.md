@@ -11,7 +11,7 @@ Full documentation is forthcoming.
 ## Installation
 
 ``` bash
-$ gem install docile
+$ gem install dsl_maker
 ```
 
 ## Links
