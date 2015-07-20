@@ -32,7 +32,7 @@ describe "DSL::Maker validation" do
   end
 
   it "rejects attributes which block Boolean helper methods" do
-    %w(yes no on off).each do |name|
+    %w(yes no on off apply).each do |name|
       expect {
         Class.new(DSL::Maker) do
           add_entrypoint(:pizza, {

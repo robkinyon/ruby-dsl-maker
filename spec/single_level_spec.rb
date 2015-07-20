@@ -1,4 +1,4 @@
-# This will use the pizza-maker DSL from Docile's tests.
+# This will use the pizza-maker DSL from Docile's documentation.
 # @sauce_level = :extra
 # pizza do
 #   cheese yes
