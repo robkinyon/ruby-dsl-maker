@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.email   = 'rob.kinyon@gmail.com'
   s.summary = 'Easy multi-level DSLs, built on top of Docile'
 
-  s.required_ruby_version = '>= 1.8.7'
+  s.required_ruby_version = '>= 1.9.3'
 
   s.add_dependency 'docile'
 
