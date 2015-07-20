@@ -2,24 +2,48 @@ require 'docile'
 
 module DSL
   class Maker
+    class Boolean
+      {
+        :yes => true, :no  => false,
+        :on  => true, :off => false,
+      }.each do |name, result|
+        define_method(name) { result }
+      end
+    end
+    Yes = On = True = true
+    No = Off = False = false
+    $to_bool = lambda do |value|
+      if value
+        return false if %w(no off false nil).include? value.to_s.downcase
+      end
+      # The bang-bang boolean-izes the value. We want this to be lossy.
+      !!value
+    end
+
     def self.parse_dsl(dsl)
       eval dsl, self.get_binding
     end
 
     def self.generate_dsl(args={})
-      Class.new do
+      # Inherit from the Boolean class to gain access to the useful methods
+      Class.new(Boolean) do
         args.each do |name, type|
+          raise "Illegal attribute name '#{name}'" if Boolean.new.respond_to? name
+
           as_attr = '@' + name.to_s
           if type == String
             define_method(name.to_sym) do |*args|
               instance_variable_set(as_attr, args[0].to_s) unless args.empty?
               instance_variable_get(as_attr)
             end
-          else
+          elsif type == Boolean
             define_method(name.to_sym) do |*args|
-              instance_variable_set(as_attr, true)
-              instance_variable_get(as_attr)
+              instance_variable_set(as_attr, $to_bool.call(args[0])) unless args.empty?
+              # Ensure that the default nil returns as false.
+              !!instance_variable_get(as_attr)
             end
+          else
+            raise "Unrecognized attribute type '#{type}'"
           end
         end
       end

@@ -1,11 +1,15 @@
 # This will use the pizza-maker DSL from Docile's tests.
 # @sauce_level = :extra
 # pizza do
-#   cheese
-#   pepperoni
+#   cheese yes
+#   pepperoni yes
 #   sauce @sauce_level
 # end
 #=> #<Pizza:0x00001009dc398 @cheese=true, @pepperoni=true, @bacon=false, @sauce=:extra>
+
+# Notes:
+# 1. Because we're creating classes on the fly, we must fully-qualify the Boolean
+# class name. If we created real classes, the context would be provided for us.
 describe 'Single-level DSL' do
   $toppings = [:cheese, :pepperoni, :bacon, :sauce]
   Pizza = Struct.new(*$toppings)
@@ -26,16 +30,52 @@ describe 'Single-level DSL' do
     verify_pizza(pizza)
   end
 
-  it 'makes a cheese pizza' do
+  # This tests all the possible Boolean invocations
+  it 'makes a cheese(-less) pizza' do
     dsl_class = Class.new(DSL::Maker) do
       add_entrypoint(:pizza, {
-        :cheese => true,
+        :cheese => DSL::Maker::Boolean,
       }) do
         Pizza.new(cheese, nil, nil, nil)
       end
     end
 
+    # There is no way to tell if this is invocation is to set the value or to
+    # retrieve the value from within the DSL. Therefore, we assume it's a getter
+    # and don't default the value to true. Otherwise, false values wouldn't work.
     pizza = dsl_class.parse_dsl('pizza { cheese }')
+    verify_pizza(pizza, :cheese => false)
+
+    # Test the Ruby booleans and falsey's.
+    [ true, false, nil ].each do |cheese|
+      pizza = dsl_class.parse_dsl("pizza { cheese #{cheese} }")
+      verify_pizza(pizza, :cheese => !!cheese)
+    end
+
+    # Test the true values we provide
+    %w(Yes On True yes on).each do |cheese|
+      pizza = dsl_class.parse_dsl("pizza { cheese #{cheese} }")
+      verify_pizza(pizza, :cheese => true)
+    end
+
+    # Test the false values we provide
+    %w(No Off False no off).each do |cheese|
+      pizza = dsl_class.parse_dsl("pizza { cheese #{cheese} }")
+      verify_pizza(pizza, :cheese => false)
+    end
+
+    # Test the boolean-ized strings we provide
+    %w(Yes On True yes on true).each do |cheese|
+      pizza = dsl_class.parse_dsl("pizza { cheese '#{cheese}' }")
+      verify_pizza(pizza, :cheese => true)
+    end
+    %w(No Off False no off false nil).each do |cheese|
+      pizza = dsl_class.parse_dsl("pizza { cheese '#{cheese}' }")
+      verify_pizza(pizza, :cheese => false)
+    end
+
+    # Test some other things which should all be true
+    pizza = dsl_class.parse_dsl("pizza { cheese 5 }")
     verify_pizza(pizza, :cheese => true)
   end
 
