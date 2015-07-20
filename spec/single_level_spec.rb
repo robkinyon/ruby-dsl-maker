@@ -100,4 +100,32 @@ describe 'Single-level DSL' do
       verify_pizza(pizza, :sauce => level.to_s)
     end
   end
+
+  it 'makes a pizza with everything' do
+    dsl_class = Class.new(DSL::Maker) do
+      add_entrypoint(:pizza, {
+        :cheese => DSL::Maker::Boolean,
+        :bacon => DSL::Maker::Boolean,
+        :pepperoni => DSL::Maker::Boolean,
+        :sauce => String,
+      }) do
+        Pizza.new(cheese, pepperoni, bacon, sauce)
+      end
+    end
+
+    pizza = dsl_class.parse_dsl("
+      pizza {
+        cheese yes
+        pepperoni yes
+        bacon no
+        sauce :extra
+      }
+    ")
+    verify_pizza(pizza,
+      :sauce => 'extra',
+      :pepperoni => true,
+      :bacon => false,
+      :cheese => true,
+    )
+  end
 end
