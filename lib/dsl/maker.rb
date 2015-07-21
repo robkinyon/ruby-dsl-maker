@@ -139,7 +139,7 @@ module DSL
     # The creation of each DSL element is delegated to build_dsl_element.
     #
     # @param args  [Hash]   the elements of the DSL block (passed to generate_dsl)
-    # @param block [Proc]   what is executed once the DSL block is parsed.
+    # @param defn_block [Proc]   what is executed once the DSL block is parsed.
     #
     # @return      [Class]  The class that implements this level's DSL definition.
     def self.generate_dsl(args={}, &defn_block)
@@ -174,7 +174,7 @@ module DSL
     #
     # @param name  [String] the name of the entrypoint
     # @param args  [Hash]   the elements of the DSL block (passed to generate_dsl)
-    # @param block [Proc]   what is executed once the DSL block is parsed.
+    # @param defn_block [Proc]   what is executed once the DSL block is parsed.
     # 
     # @return      nil
     def self.add_entrypoint(name, args={}, &defn_block)
