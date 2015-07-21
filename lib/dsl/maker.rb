@@ -59,12 +59,6 @@ module DSL
               # Ensure that the default nil returns as false.
               !!___get(as_attr)
             end
-          elsif type == Array
-            define_method(name.to_sym) do |*args|
-              ___set(as_attr, []) unless ___get(as_attr)
-              ___get(as_attr).concat(args) unless args.empty?
-              ___get(as_attr)
-            end
           elsif type.is_a?(Class) and type.ancestors.include?(Boolean)
             define_method(name.to_sym) do |*args, &dsl_block|
               unless (args.empty? && !dsl_block)
