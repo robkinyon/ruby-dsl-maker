@@ -2,8 +2,11 @@ require 'dsl/maker/version'
 
 require 'docile'
 
+# The DSL namespace
 module DSL
+  # This is the base class we provide.
   class Maker
+    # This is a useful class that contains all the Boolean handling we have.
     class Boolean
       {
         :yes => true, :no  => false,
@@ -14,13 +17,23 @@ module DSL
 
       # 21 character method names are obscene. Make it easier to read.
       alias :___set :instance_variable_set
+
+      # 21 character method names are obscene. Make it easier to read.
       alias :___get :instance_variable_get
 
+      # A helper method for handling defaults from args easily.
+      # 
+      # @param method_name [String]  The name of the attribute being defaulted.
+      # @param args        [Array]   The arguments provided to the block.
+      # @param position    [Integer] The index in args to work with, default 0.
+      #
+      # @return nil
       def default(method_name, args, position=0)
         method = method_name.to_sym
         if args.length >= (position + 1) && !self.send(method)
           self.send(method, args[position])
         end
+        return
       end
     end
     Yes = On = True = true
@@ -35,6 +48,15 @@ module DSL
 
     # TODO: Is this safe if the invoker doesn't use parse_dsl()?
     @@accumulator = []
+
+    # Parse the DSL provided in the parameter
+    #
+    # @note If the DSL contains multiple entrypoints, then this will return an
+    # Array. This is desirable.
+    #
+    # @param dsl [String] The DSL to be parsed by this class.
+    #
+    # @return    [Object] Whatever is returned by the block defined in this class.
     def self.parse_dsl(dsl)
       # add_entrypoint() will use @@accumulator to handle multiple entrypoints.
       # Reset it here so that we're only handling the values from this run.
@@ -67,6 +89,22 @@ module DSL
         end
       },
     }
+
+    # Add a single element of a DSL to a class representing a level in a DSL.
+    #
+    # Each of the types represents a coercion - a guarantee and check of the value
+    # in that name. The standard coercions are:
+    #
+    #   * String  - whatever you give is returned.
+    #   * Boolean - the truthiness of whatever you give is returned.
+    #   * generate_dsl() - this represents a new level of the DSL.
+    #
+    # @param klass [Class]  The class representing this level in the DSL.
+    # @param name  [String] The name of the element we're working on.
+    # @param type  [Class]  The type of this element we're working on.
+    #                       This is the coercion spoken above.
+    #
+    # @return   nil
     def self.build_dsl_element(klass, name, type)
       if @@dsl_elements.has_key?(type)
         @@dsl_elements[type].call(klass, name, type)
@@ -88,8 +126,22 @@ module DSL
       else
         raise "Unrecognized element type '#{type}'"
       end
+
+      return
     end
 
+    # Add the meat of a DSL block to some level of this class's DSL.
+    #
+    # In order for Docile to parse a DSL, each level must be represented by a
+    # different class. This method creates anonymous classes that each represents
+    # a different level in the DSL's structure.
+    #
+    # The creation of each DSL element is delegated to build_dsl_element.
+    #
+    # @param args  [Hash]   the elements of the DSL block (passed to generate_dsl)
+    # @param block [Proc]   what is executed once the DSL block is parsed.
+    #
+    # @return      [Class]  The class that implements this level's DSL definition.
     def self.generate_dsl(args={}, &defn_block)
       raise 'Block required for generate_dsl' unless block_given?
 
@@ -116,6 +168,15 @@ module DSL
       return klass
     end
 
+    # Add an entrypoint (top-level DSL element) to this class's DSL.
+    #
+    # This delegates to generate_dsl() for the majority of the work.
+    #
+    # @param name  [String] the name of the entrypoint
+    # @param args  [Hash]   the elements of the DSL block (passed to generate_dsl)
+    # @param block [Proc]   what is executed once the DSL block is parsed.
+    # 
+    # @return      nil
     def self.add_entrypoint(name, args={}, &defn_block)
       # Without defn_block, there's no way to give back the result of the
       # DSL parsing. So, raise an error if we don't get one.
@@ -140,7 +201,7 @@ module DSL
         @@accumulator.push(rv)
         return rv
       end
-      return dsl_class
+      return
     end
   end
 end

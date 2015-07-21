@@ -13,3 +13,16 @@ RSpec::Core::RakeTask.new
 
 # Configure `rake clobber` to delete all generated files
 CLOBBER.include('pkg', 'doc', 'coverage')
+
+if !on_travis? && !on_jruby? && !on_1_8?
+  require 'github/markup'
+  require 'redcarpet'
+  require 'yard'
+  require 'yard/rake/yardoc_task'
+
+  YARD::Rake::YardocTask.new do |t|
+    OTHER_PATHS = %w()
+    t.files   = ['lib/**/*.rb', OTHER_PATHS]
+    t.options = %w(--markup-provider=redcarpet --markup=markdown --main=README.md)
+  end
+end
