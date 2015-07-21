@@ -27,7 +27,12 @@ module DSL
     end
 
     def self.parse_dsl(dsl)
+      @@accumulator = []
       eval dsl, self.get_binding
+      if @@accumulator.length <= 1
+        return @@accumulator[0]
+      end
+      return @@accumulator
     end
 
     def self.generate_dsl(args={}, &defn_block)
@@ -98,7 +103,9 @@ module DSL
       define_singleton_method(name.to_sym) do |*args, &dsl_block|
         obj = dsl_class.new
         Docile.dsl_eval(obj, &dsl_block) if dsl_block
-        return obj.instance_exec(*args, &defn_block)
+        rv = obj.instance_exec(*args, &defn_block)
+        @@accumulator.push(rv)
+        return rv
       end
       return dsl_class
     end
