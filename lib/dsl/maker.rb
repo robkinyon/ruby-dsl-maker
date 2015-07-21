@@ -39,47 +39,56 @@ module DSL
       raise 'Block required for generate_dsl' unless block_given?
 
       # Inherit from the Boolean class to gain access to the useful methods
-      klass = Class.new(Boolean)
-      klass.class_eval do
-        # This method exists because we cannot seem to inline this method's work
+      # TODO: Convert DSL::Maker::Boolean into a Role
+      # TODO: Create a DSL::Maker::Base class to inherit from
+      klass = Class.new(Boolean) do
+        # This instance method exists because we cannot seem to inline its work
         # where we call it. Could it be a problem of incorrect binding?
-        define_method(:apply) do |*args|
+        # It has to be defined here because it needs access to &defn_block
+        define_method(:__apply) do |*args|
           instance_exec(*args, &defn_block)
         end
+      end
 
-        args.each do |name, type|
-          if klass.new.respond_to? name.to_sym
-            raise "Illegal attribute name '#{name}'"
-          end
+      args.each do |name, type|
+        if klass.new.respond_to? name.to_sym
+          raise "Illegal attribute name '#{name}'"
+        end
 
-          as_attr = '@' + name.to_s
-          if type == String
+        as_attr = '@' + name.to_s
+        if type == String
+          klass.class_eval do
             define_method(name.to_sym) do |*args|
               ___set(as_attr, args[0].to_s) unless args.empty?
               ___get(as_attr)
             end
-          elsif type == Boolean
+          end
+        elsif type == Boolean
+          klass.class_eval do
             define_method(name.to_sym) do |*args|
               ___set(as_attr, $to_bool.call(args[0])) unless args.empty?
               # Ensure that the default nil returns as false.
               !!___get(as_attr)
             end
-          elsif type.is_a?(Class) and type.ancestors.include?(Boolean)
+          end
+        elsif type.is_a?(Class) and type.ancestors.include?(Boolean)
+          klass.class_eval do
             define_method(name.to_sym) do |*args, &dsl_block|
               unless (args.empty? && !dsl_block)
                 obj = type.new
                 Docile.dsl_eval(obj, &dsl_block) if dsl_block
-                ___set(as_attr, obj.apply(*args))
+                ___set(as_attr, obj.__apply(*args))
                 #___set(as_attr, obj.instance_exec(*args, &defn_block))
               end
 
               ___get(as_attr)
             end
-          else
-            raise "Unrecognized attribute type '#{type}'"
           end
+        else
+          raise "Unrecognized attribute type '#{type}'"
         end
       end
+
       return klass
     end
 
