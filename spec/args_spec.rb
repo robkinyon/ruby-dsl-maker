@@ -9,8 +9,7 @@ describe "A DSL with argument handling describing fruit" do
       add_entrypoint(:fruit, {
         :name => String,
       }) do |*args|
-        # Set the name to args[0] unless the name is already set or no args
-        name(args[0]) unless name || args.empty?
+        default(:name, args, 0)
         Fruit.new(name, nil)
       end
     end
@@ -57,8 +56,8 @@ describe "A DSL with argument handling describing fruit" do
         :name => String,
         :color => String,
       }) do |*args|
-        name(args[0]) unless name || args.empty?
-        color(args[1]) unless color || args.length < 2
+        default('name', args)
+        default('color', args, 1)
 
         Fruit.new(name, color)
       end
@@ -112,11 +111,11 @@ describe "A DSL with argument handling describing fruit" do
         :color => generate_dsl({
           :name => String,
         }) { |*args|
-          name(args[0]) unless name || args.empty?
+          default('name', args, 0)
           Color.new(name)
         }
       }) do |*args|
-        name(args[0]) unless name || args.empty?
+        default('name', args, 0)
         Fruit.new(name, color)
       end
     end

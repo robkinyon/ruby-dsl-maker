@@ -15,6 +15,13 @@ module DSL
       # 21 character method names are obscene. Make it easier to read.
       alias :___set :instance_variable_set
       alias :___get :instance_variable_get
+
+      def default(method_name, args, position=0)
+        method = method_name.to_sym
+        if args.length >= (position + 1) && !self.send(method)
+          self.send(method, args[position])
+        end
+      end
     end
     Yes = On = True = true
     No = Off = False = false

@@ -1,9 +1,10 @@
 # DSL::Maker
 
 [![Build Status](https://img.shields.io/travis/robkinyon/ruby-dsl-maker.svg)](https://travis-ci.org/robkinyon/ruby-dsl-maker)
+[![Code Coverage](https://img.shields.io/codecov/c/github/robkinyon/ruby-dsl-maker.svg)](https://codecov.io/github/robkinyon/ruby-dsl-maker)
 
 Writing single-level Ruby-like DSLs is really easy. Ruby practically builds them
-for you with a little meta-programming and [![Docile](https://github.com/ms-ati/docile)] makes it ridiculously easy.
+for you with a little meta-programming and [Docile](https://github.com/ms-ati/docile) makes it ridiculously easy.
 
 Unfortunately, writing multi-level DSLs becomes repetitive and overly complex.
 Which is dumb. Multi-level DSLs are where the sweetness lives. We write DSLs in
@@ -153,7 +154,7 @@ class FamilyTree < DSL::Maker
     :name => String,
     :age  => String,
   }) do |*args|
-    name(args[0]) unless name || args.length < 1
+    default(:name, args)
     Person.new(name, age)
   end
 
@@ -162,8 +163,8 @@ class FamilyTree < DSL::Maker
     :age  => String,
     :mother => parent,
     :father => parent,
-  }) do
-    name(args[0]) unless name || args.length < 1
+  }) do |*args|
+    default('name', args, 0)
     Person.new(name, age, mother, father)
   end
 end
@@ -186,26 +187,18 @@ The result is exactly the same as before.
 
 ## API
 
+### Class Methods
+
 DSL::Maker provides three class methods - two for constructing your DSL and one
 for parsing your DSL.
 
-### add_entrypoint(Symbol, Hash={}, Block) / generate_dsl(Hash={}, Block)
+* `add_entrypoint(Symbol, Hash={}, Block)` / `generate_dsl(Hash={}, Block)`
 
 These are used to define your DSL class. `add_entrypoint()` will create the right
 class methods for Docile to use when `parse_dsl()` is called. It will also invoke
 `generate_dsl()` with the Hash you give it to create the parsing.
 
-#### Coercions
-
-There are three defined coercions:
-
-  * String - This takes any string.
-  * Boolean - This takes whatever you give it and returns the truthiness of it.
-  * `generate_dsl()` - This descends into another level of DSL.
-
-You will be able to add your own coercions in a forthcoming version of DSL::Maker.
-
-### parse_dsl(String)
+* `parse_dsl(String)`
 
 You call this on your DSL class when you're ready to invoke your DSL. It will
 return whatever the block provided `add_entrypoint()` returns.
@@ -213,6 +206,25 @@ return whatever the block provided `add_entrypoint()` returns.
 In the case of multiple DSL entrypoints (for example, a normal Chef recipe),
 `parse_dsl()` will return an array with all the return values in the order of
 invocation.
+
+### Coercions
+
+There are three defined coercions for use within `generate_dsl()`:
+
+  * String - This takes any string.
+  * Boolean - This takes whatever you give it and returns the truthiness of it.
+  * `generate_dsl()` - This descends into another level of DSL.
+
+You will be able to add your own coercions in a forthcoming version of DSL::Maker.
+
+### Helpers
+
+There is one pre-defined helper.
+
+* `default(String, Array, Integer=0)`
+
+This takes a method name and the args provided to the block. It then ensures that
+the method defaults to the value in the args at the optional third argument.
 
 ## Installation
 
