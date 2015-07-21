@@ -46,6 +46,50 @@ module DSL
       return @@accumulator
     end
 
+    @@dsl_elements = {
+      String => ->(klass, name, type) {
+        as_attr = '@' + name.to_s
+        klass.class_eval do
+          define_method(name.to_sym) do |*args|
+            ___set(as_attr, args[0].to_s) unless args.empty?
+            ___get(as_attr)
+          end
+        end
+      },
+      Boolean => ->(klass, name, type) {
+        as_attr = '@' + name.to_s
+        klass.class_eval do
+          define_method(name.to_sym) do |*args|
+            ___set(as_attr, $to_bool.call(args[0])) unless args.empty?
+            # Ensure that the default nil returns as false.
+            !!___get(as_attr)
+          end
+        end
+      },
+    }
+    def self.build_dsl_element(klass, name, type)
+      if @@dsl_elements.has_key?(type)
+        @@dsl_elements[type].call(klass, name, type)
+      elsif type.is_a?(Class) && type.ancestors.include?(Boolean)
+        as_attr = '@' + name.to_s
+        klass.class_eval do
+          define_method(name.to_sym) do |*args, &dsl_block|
+            unless (args.empty? && !dsl_block)
+              obj = type.new
+              Docile.dsl_eval(obj, &dsl_block) if dsl_block
+
+              # I don't know why this code doesn't work, but it's why __apply().
+              #___set(as_attr, obj.instance_exec(*args, &defn_block))
+              ___set(as_attr, obj.__apply(*args))
+            end
+            ___get(as_attr)
+          end
+        end
+      else
+        raise "Unrecognized element type '#{type}'"
+      end
+    end
+
     def self.generate_dsl(args={}, &defn_block)
       raise 'Block required for generate_dsl' unless block_given?
 
@@ -66,38 +110,7 @@ module DSL
           raise "Illegal attribute name '#{name}'"
         end
 
-        as_attr = '@' + name.to_s
-        if type == String
-          klass.class_eval do
-            define_method(name.to_sym) do |*args|
-              ___set(as_attr, args[0].to_s) unless args.empty?
-              ___get(as_attr)
-            end
-          end
-        elsif type == Boolean
-          klass.class_eval do
-            define_method(name.to_sym) do |*args|
-              ___set(as_attr, $to_bool.call(args[0])) unless args.empty?
-              # Ensure that the default nil returns as false.
-              !!___get(as_attr)
-            end
-          end
-        elsif type.is_a?(Class) and type.ancestors.include?(Boolean)
-          klass.class_eval do
-            define_method(name.to_sym) do |*args, &dsl_block|
-              unless (args.empty? && !dsl_block)
-                obj = type.new
-                Docile.dsl_eval(obj, &dsl_block) if dsl_block
-                ___set(as_attr, obj.__apply(*args))
-                #___set(as_attr, obj.instance_exec(*args, &defn_block))
-              end
-
-              ___get(as_attr)
-            end
-          end
-        else
-          raise "Unrecognized attribute type '#{type}'"
-        end
+        build_dsl_element(klass, name, type)
       end
 
       return klass

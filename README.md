@@ -148,7 +148,7 @@ class FamilyTree < DSL::Maker
 end
 ```
 
-There's no limit to the number of levels you can go down.
+There's no limit to the number of levels you can go define.
 
 ### Handling Arguments
 
@@ -242,11 +242,24 @@ you get back an `Array` with everything in the right order.
 DSL::Maker provides three class methods - two for constructing your DSL and one
 for parsing your DSL.
 
-* `add_entrypoint(Symbol, Hash={}, Block)` / `generate_dsl(Hash={}, Block)`
+* `add_entrypoint(Symbol, Hash={}, Block)`
 
-These are used to define your DSL class. `add_entrypoint()` will create the right
-class methods for Docile to use when `parse_dsl()` is called. It will also invoke
-`generate_dsl()` with the Hash you give it to create the parsing.
+This is used in defining your DSL class to create an entrypoint - the highest
+level of your DSL. `add_entrypoint()` will create the right class methods for
+Docile to use when `parse_dsl()` is called. It will also invoke `generate_dsl()`
+with the Hash you give it to create the parsing.
+
+* `generate_dsl(Hash={}, Block)`
+
+This is used in defining your DSL to describe the innards - the guts that actually
+have meaning. Once this level has been completed, the Block will be called and the
+return value provided back to the name.
+
+* `build_dsl_element(Class, String, Type)`
+
+This is normally called by `generate_dsl()` to actually construct the DSL element.
+It is provided for you so that you can create recursive DSL definitions. Look at
+the tests in `spec/multi_level_spec.rb` for an example of this.
 
 * `parse_dsl(String)`
 

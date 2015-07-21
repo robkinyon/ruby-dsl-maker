@@ -28,7 +28,7 @@ describe "DSL::Maker validation" do
           Pizza.new(cheese, nil, nil, nil)
         end
       end
-    }.to raise_error("Unrecognized attribute type 'true'")
+    }.to raise_error("Unrecognized element type 'true'")
   end
 
   it "rejects attributes which block Boolean helper methods" do

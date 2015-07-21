@@ -91,4 +91,68 @@ describe 'A multi-level DSL making family-trees' do
     expect(person.child.child).to be_instance_of(Person)
     expect(person.child.child.name).to eq('Judith')
   end
+
+  it "can define things recursively" do
+    dsl_class = Class.new(DSL::Maker) do
+      person = generate_dsl({
+        :name => String,
+      }) {
+        Person.new(name, child)
+      }
+      build_dsl_element(person, :child, person)
+
+      add_entrypoint(:person, {
+        :name => String,
+        :child => person,
+      }) do
+        Person.new(name, child)
+      end
+    end
+
+    # This is taken from https://en.wikipedia.org/wiki/Family_tree_of_the_Bible
+    person = dsl_class.parse_dsl("
+      person {
+        name 'Adam'
+        child {
+          name 'Seth'
+          child {
+            name 'Enos'
+            child {
+              name 'Cainan'
+              child {
+                name 'Mahalaleel'
+                child {
+                  name 'Jared'
+                  child {
+                    name 'Enoch'
+                    child {
+                      name 'Methuselah'
+                      child {
+                        name 'Lamech'
+                        child {
+                          name 'Noah'
+                          child {
+                            name 'Shem'
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ")
+
+    [
+      'Adam', 'Seth', 'Enos', 'Cainan', 'Mahalaleel', 'Jared',
+      'Enoch', 'Methuselah', 'Lamech', 'Noah', 'Shem',
+    ].each do |name|
+      expect(person).to be_instance_of(Person)
+      expect(person.name).to eq(name)
+      person = person.child
+    end
+  end
 end
