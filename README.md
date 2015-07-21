@@ -1,5 +1,9 @@
 # DSL::Maker
 
+[![Gem Version](https://img.shields.io/gem/v/dsl_maker.svg)](https://rubygems.org/gems/dsl_maker)
+[![Gem Downloads](https://img.shields.io/gem/dt/dsl_maker.svg)](https://rubygems.org/gems/dsl_maker)
+[![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](http://rubydoc.info/github/robkinyon/ruby-dsl-maker)
+
 [![Build Status](https://img.shields.io/travis/robkinyon/ruby-dsl-maker.svg)](https://travis-ci.org/robkinyon/ruby-dsl-maker)
 [![Code Climate](https://img.shields.io/codeclimate/github/robkinyon/ruby-dsl-maker.svg)](https://codeclimate.com/github/robkinyon/ruby-dsl-maker)
 [![Code Coverage](https://img.shields.io/codecov/c/github/robkinyon/ruby-dsl-maker.svg)](https://codecov.io/github/robkinyon/ruby-dsl-maker)
