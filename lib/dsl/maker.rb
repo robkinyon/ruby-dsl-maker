@@ -26,7 +26,11 @@ module DSL
       !!value
     end
 
+    # TODO: Is this safe if the invoker doesn't use parse_dsl()?
+    @@accumulator = []
     def self.parse_dsl(dsl)
+      # add_entrypoint() will use @@accumulator to handle multiple entrypoints.
+      # Reset it here so that we're only handling the values from this run.
       @@accumulator = []
       eval dsl, self.get_binding
       if @@accumulator.length <= 1
@@ -98,11 +102,11 @@ module DSL
       # TODO: Provide a default block that returns the datastructure as a HoH.
       raise "Block required for add_entrypoint" unless block_given?
 
-      # Ensure that get_binding() exists in the child class.
+      # Ensure that get_binding() exists in the child class. This is necessary to
+      # provide parse_dsl() so that eval works as expected. We have to do it here
+      # because this is the only place we know for certain will be called.
       unless self.respond_to? :get_binding
-        define_singleton_method(:get_binding) {
-          binding
-        }
+        define_singleton_method(:get_binding) { binding }
       end
 
       # FIXME: This is a wart. Really, we should be pulling out name, then
