@@ -1,6 +1,7 @@
 # DSL::Maker
 
 [![Build Status](https://img.shields.io/travis/robkinyon/ruby-dsl-maker.svg)](https://travis-ci.org/robkinyon/ruby-dsl-maker)
+[![Code Climate](https://img.shields.io/codeclimate/github/robkinyon/ruby-dsl-maker.svg)](https://codeclimate.com/github/robkinyon/ruby-dsl-maker)
 [![Code Coverage](https://img.shields.io/codecov/c/github/robkinyon/ruby-dsl-maker.svg)](https://codecov.io/github/robkinyon/ruby-dsl-maker)
 
 Writing single-level Ruby-like DSLs is really easy. Ruby practically builds them
