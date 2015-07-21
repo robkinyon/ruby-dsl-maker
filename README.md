@@ -3,9 +3,12 @@
 [![Build Status](https://img.shields.io/travis/robkinyon/ruby-dsl-maker.svg)](https://travis-ci.org/robkinyon/ruby-dsl-maker)
 [![Code Climate](https://img.shields.io/codeclimate/github/robkinyon/ruby-dsl-maker.svg)](https://codeclimate.com/github/robkinyon/ruby-dsl-maker)
 [![Code Coverage](https://img.shields.io/codecov/c/github/robkinyon/ruby-dsl-maker.svg)](https://codecov.io/github/robkinyon/ruby-dsl-maker)
+[![Inline docs](http://inch-ci.org/github/robkinyon/ruby-dsl-maker.png)](http://inch-ci.org/github/robkinyon/ruby-dsl-maker)
+
 
 Writing single-level Ruby-like DSLs is really easy. Ruby practically builds them
-for you with a little meta-programming and [Docile](https://github.com/ms-ati/docile) makes it ridiculously easy.
+for you with a little meta-programming. [Docile](https://github.com/ms-ati/docile)
+makes it ridiculously easy and there are nearly a dozen other modules to do so.
 
 Unfortunately, writing multi-level DSLs becomes repetitive and overly complex.
 Which is dumb. Multi-level DSLs are where the sweetness lives. We write DSLs in
@@ -20,7 +23,8 @@ multi-level DSLs and handle the output.
 
 ### Single-level DSLs
 
-Docile has a DSL that builds pizza. An example would look like:
+In its documentation, [Docile](https://github.com/ms-ati/docile) has a DSL that
+builds pizza. An example would look like:
 
 ```ruby
 @sauce_level = :extra
@@ -80,7 +84,10 @@ end
 pizza = PizzaBuilder.parse_dsl(dsl_block)
 ```
 
-(PizzaBuilder is used in the test suite in `spec/single_level_spec.rb`.)
+Now, you accept the strings (possibly from `IO.read()`) and magically get the
+result of your DSL.
+
+(The PizzaBuilder is used in the test suite in `spec/single_level_spec.rb`.)
 
 ### Multi-level DSLs
 
@@ -185,6 +192,48 @@ john_smith = FamilyTree.parse_dsl("
 ```
 
 The result is exactly the same as before.
+
+### Handling multiple items
+
+Chef's recipe files have many entries of different types in them. It doesn't do
+you any good if you can't do the same thing.
+
+```ruby
+Car = Struct.new(:make, :model)
+Truck = Struct.new(:make, :model)
+
+class VehicleDSL < DSL::Maker
+  add_entrypoint(:car, {
+    :make => String,
+    :model => String,
+  }) {
+    Car.new(make, model)
+  }
+
+  add_entrypoint(:truck, {
+    :make => String,
+    :model => String,
+  }) {
+    Truck.new(make, model)
+  }
+end
+
+vehicles = VehicleDSL.parse_dsl("
+  car {
+    make 'Honda'
+    model 'Civic'
+  }
+
+  truck {
+    make 'Ford'
+    model 'F150'
+  }
+")
+```
+
+`vehicles` is an `Array` with a `Car` and a `Truck` in it, in that order. If your
+DSL snippet has only one item, you get back that item. If it has multiple items,
+you get back an `Array` with everything in the right order.
 
 ## API
 
