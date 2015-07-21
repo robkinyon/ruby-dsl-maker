@@ -4,12 +4,18 @@ RSpec.configure do |config|
   end
 end
 
-require 'simplecov'
+begin
+  require 'simplecov'
 
-SimpleCov.start do
-  add_filter '/spec/'
-  minimum_coverage 100
-  refuse_coverage_drop
+  SimpleCov.configure do
+    add_filter '/spec/'
+    minimum_coverage 100
+    refuse_coverage_drop
+  end
+
+  SimpleCov.start
+rescue LoadError
+  puts "Coverage is disabled - install simplecov to enable."
 end
 
 require 'dsl/maker'
