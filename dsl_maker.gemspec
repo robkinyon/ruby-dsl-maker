@@ -16,13 +16,5 @@ Gem::Specification.new do |s|
   # Run rspec tests from rake
   s.add_development_dependency 'rake'
   s.add_development_dependency 'rspec', '~> 3.0.0'
-
-  # Don't install simplecov on JRuby because it seems to be broken per Travis.
-  unless on_jruby?
-    s.add_development_dependency 'simplecov'
-  end
-
-  # NOTE: needed for Travis builds on 1.8, but can't yet reproduce failure locally
-  #s.add_development_dependency 'mime-types' , '~> 1.25.1' if on_1_8?
-  #s.add_development_dependency 'rest-client', '~> 1.6.8'  if on_1_8?
+  s.add_development_dependency 'simplecov'
 end
