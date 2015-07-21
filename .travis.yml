@@ -6,22 +6,17 @@ rvm:
   - 2.1
   - 2.0.0
   - 1.9.3
-  - jruby-head
-  - jruby-21mode
-  - jruby-20mode
-  - jruby-19mode
   - rbx-2
 matrix:
   include:
-    - rvm: jruby-19mode
-      env: JRUBY_OPTS="$JRUBY_OPTS --debug"  # for simplecov
-    - rvm: jruby-20mode
-      env: JRUBY_OPTS="$JRUBY_OPTS --debug"  # for simplecov
-    - rvm: jruby-21mode
-      env: JRUBY_OPTS="$JRUBY_OPTS --debug"  # for simplecov
     - rvm: jruby-head
-      env: JRUBY_OPTS="$JRUBY_OPTS --debug"  # for simplecov
+      env: JRUBY_OPTS="$JRUBY_OPTS -Xcli.debug=true --debug"  # for simplecov
+    - rvm: jruby-21mode
+      env: JRUBY_OPTS="$JRUBY_OPTS -Xcli.debug=true --debug"  # for simplecov
+    - rvm: jruby-20mode
+      env: JRUBY_OPTS="$JRUBY_OPTS -Xcli.debug=true --debug"  # for simplecov
+    - rvm: jruby-19mode
+      env: JRUBY_OPTS="$JRUBY_OPTS -Xcli.debug=true --debug"  # for simplecov
   allow_failures:
-    - rvm: ruby-head
     - rvm: jruby-head
   fast_finish: true
