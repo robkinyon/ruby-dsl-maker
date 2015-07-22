@@ -161,7 +161,7 @@ best to explain.
 
 ```ruby
 Person = Struct.new(:name, :age, :mother, :father)
-class FamilyTree < DSL::Maker
+class FamilyTreeDSL < DSL::Maker
   parent = generate_dsl({
     :name => String,
     :age  => String,
@@ -181,7 +181,7 @@ class FamilyTree < DSL::Maker
   end
 end
 
-john_smith = FamilyTree.parse_dsl("
+john_smith = FamilyTreeDSL.parse_dsl("
   person 'John Smith' do
     age 20
     mother 'Mary Smith' do
@@ -196,6 +196,31 @@ john_smith = FamilyTree.parse_dsl("
 ```
 
 The result is exactly the same as before.
+
+### Recursive DSLs
+
+We're making an artificial distinction between `person` and `parent` in the
+`FamilyTreeDSL` example above. Really, we want to say "A person can have a mother
+and a father and those are also persons." So, let's say that.
+
+```ruby
+Person = Struct.new(:name, :age, :mother, :father)
+
+class FamilyTreeDSL < DSL::Maker
+  person_dsl = add_entrypoint(:person, {
+    :name => String,
+    :age  => String,
+  }) do |*args|
+    default(:name, args)
+    Person.new(name, age mother, father)
+  end
+
+  build_dsl_element(person_dsl, :mother, person_dsl)
+  build_dsl_element(person_dsl, :father, person_dsl)
+end
+```
+
+Now, we can handle an arbitrarily-deep family tree.
 
 ### Handling multiple items
 
@@ -243,7 +268,7 @@ you get back an `Array` with everything in the right order.
 
 ### Class Methods
 
-DSL::Maker provides three class methods - two for constructing your DSL and one
+DSL::Maker provides five class methods - three for constructing your DSL and two
 for parsing your DSL.
 
 * `add_entrypoint(Symbol, Hash={}, Block)`
@@ -265,13 +290,13 @@ This is normally called by `generate_dsl()` to actually construct the DSL elemen
 It is provided for you so that you can create recursive DSL definitions. Look at
 the tests in `spec/multi_level_spec.rb` for an example of this.
 
-* `parse_dsl(String)`
+* `parse_dsl(String)` / `execute_dsl(&block)`
 
 You call this on your DSL class when you're ready to invoke your DSL. It will
 return whatever the block provided `add_entrypoint()` returns.
 
 In the case of multiple DSL entrypoints (for example, a normal Chef recipe),
-`parse_dsl()` will return an array with all the return values in the order of
+these methods will return an array with all the return values in the order of
 invocation.
 
 ### Coercions
