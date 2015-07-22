@@ -2,6 +2,7 @@ Revision history for DSL::Maker (ordered by revision number).
 
 0.0.2 ??? ?? ????
    - Allow add_entrypoint() to take a DSL class instead of args
+   - Added execute_dsl() that takes a block
 
 0.0.1 Jul 21 2015
    - Initial release

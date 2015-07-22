@@ -53,4 +53,33 @@ describe "A DSL describing cars used with multiple invocations" do
     expect(vehicles[2]).to be_instance_of(Truck)
     expect(vehicles[2].maker).to eq('Toyota')
   end
+
+  it "does all the same things with execute_dsl" do
+    dsl_class = Class.new(DSL::Maker) do
+      add_entrypoint(:car, {
+        :maker => String,
+      }) do
+        Car.new(maker)
+      end
+      add_entrypoint(:truck, {
+        :maker => String,
+      }) do
+        Truck.new(maker)
+      end
+    end
+
+    vehicles = dsl_class.execute_dsl do
+      truck { maker 'Ford' }
+      car { maker 'Honda' }
+      truck { maker 'Toyota' }
+    end
+    expect(vehicles).to be_instance_of(Array)
+    expect(vehicles.length).to eq(3)
+    expect(vehicles[0]).to be_instance_of(Truck)
+    expect(vehicles[0].maker).to eq('Ford')
+    expect(vehicles[1]).to be_instance_of(Car)
+    expect(vehicles[1].maker).to eq('Honda')
+    expect(vehicles[2]).to be_instance_of(Truck)
+    expect(vehicles[2].maker).to eq('Toyota')
+  end
 end

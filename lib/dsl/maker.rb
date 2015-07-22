@@ -49,7 +49,7 @@ module DSL
     # TODO: Is this safe if the invoker doesn't use parse_dsl()?
     @@accumulator = []
 
-    # Parse the DSL provided in the parameter
+    # Parse the DSL provided in the parameter.
     #
     # @note If the DSL contains multiple entrypoints, then this will return an
     # Array. This is desirable.
@@ -62,6 +62,23 @@ module DSL
       # Reset it here so that we're only handling the values from this run.
       @@accumulator = []
       eval dsl, self.get_binding
+      if @@accumulator.length <= 1
+        return @@accumulator[0]
+      end
+      return @@accumulator
+    end
+
+    # Execute the DSL provided in the block.
+    #
+    # @note If the DSL contains multiple entrypoints, then this will return an
+    # Array. This is desirable.
+    #
+    # @param &block [Block] The DSL to be executed by this class.
+    #
+    # @return    [Object] Whatever is returned by &block
+    def self.execute_dsl(&block)
+      @@accumulator = []
+      instance_eval(&block)
       if @@accumulator.length <= 1
         return @@accumulator[0]
       end

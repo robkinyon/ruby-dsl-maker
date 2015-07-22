@@ -131,4 +131,35 @@ describe 'A single-level DSL for pizza' do
       :cheese => true,
     )
   end
+
+  it 'can execute the DSL directly' do
+    dsl_class = Class.new(DSL::Maker) do
+      toppings_dsl = generate_dsl({
+        :cheese => DSL::Maker::Boolean,
+        :bacon => DSL::Maker::Boolean,
+        :pepperoni => DSL::Maker::Boolean,
+        :sauce => String,
+      }) {}
+
+      # This is a wart - this block should be against toppings_dsl, not here.
+      add_entrypoint(:pizza, toppings_dsl) do
+        Pizza.new(cheese, pepperoni, bacon, sauce)
+      end
+    end
+
+    pizza = dsl_class.execute_dsl do
+      pizza {
+        cheese yes
+        pepperoni yes
+        bacon no
+        sauce :extra
+      }
+    end
+    verify_pizza(pizza,
+      :sauce => 'extra',
+      :pepperoni => true,
+      :bacon => false,
+      :cheese => true,
+    )
+  end
 end
