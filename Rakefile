@@ -12,7 +12,7 @@ task :default => [:spec]
 RSpec::Core::RakeTask.new
 
 # Configure `rake clobber` to delete all generated files
-CLOBBER.include('pkg', 'doc', 'coverage')
+CLOBBER.include('pkg', 'doc', 'coverage', '*.gem')
 
 if !on_travis? && !on_jruby? && !on_1_8?
   require 'github/markup'
