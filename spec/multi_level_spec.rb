@@ -93,6 +93,18 @@ describe 'A multi-level DSL making family-trees' do
   end
 
   it "can define things recursively" do
+    # This really should be:
+    #dsl_class = Class.new(DSL::Maker) do
+    #  person_dsl = add_entrypoint(:person, {
+    #    :name => String,
+    #  }) do
+    #    Person.new(name, child)
+    #  end
+    #  build_dsl_element(person_dsl, :child, person_dsl)
+    #end
+    # But, :child doesn't have access to &defn_block that was passed to
+    # add_entrypoint().
+
     dsl_class = Class.new(DSL::Maker) do
       person = generate_dsl({
         :name => String,

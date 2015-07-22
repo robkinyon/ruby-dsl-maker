@@ -148,7 +148,7 @@ module DSL
       # Inherit from the Boolean class to gain access to the useful methods
       # TODO: Convert DSL::Maker::Boolean into a Role
       # TODO: Create a DSL::Maker::Base class to inherit from
-      klass = Class.new(Boolean) do
+      dsl_class = Class.new(Boolean) do
         # This instance method exists because we cannot seem to inline its work
         # where we call it. Could it be a problem of incorrect binding?
         # It has to be defined here because it needs access to &defn_block
@@ -158,14 +158,14 @@ module DSL
       end
 
       args.each do |name, type|
-        if klass.new.respond_to? name.to_sym
+        if dsl_class.new.respond_to? name.to_sym
           raise "Illegal attribute name '#{name}'"
         end
 
-        build_dsl_element(klass, name, type)
+        build_dsl_element(dsl_class, name, type)
       end
 
-      return klass
+      return dsl_class
     end
 
     # Add an entrypoint (top-level DSL element) to this class's DSL.
@@ -176,7 +176,7 @@ module DSL
     # @param args  [Hash]   the elements of the DSL block (passed to generate_dsl)
     # @param defn_block [Proc]   what is executed once the DSL block is parsed.
     # 
-    # @return      nil
+    # @return      [Class]  The class that implements this level's DSL definition.
     def self.add_entrypoint(name, args={}, &defn_block)
       # Without defn_block, there's no way to give back the result of the
       # DSL parsing. So, raise an error if we don't get one.
@@ -192,6 +192,8 @@ module DSL
 
       # FIXME: This is a wart. Really, we should be pulling out name, then
       # yielding to generate_dsl() in some fashion.
+      # FIXME: If we can pass &defn_block here, then I think we could fix the
+      # recursive definition problem in multi_level_spec.rb
       dsl_class = generate_dsl(args) {}
 
       define_singleton_method(name.to_sym) do |*args, &dsl_block|
@@ -201,7 +203,8 @@ module DSL
         @@accumulator.push(rv)
         return rv
       end
-      return
+
+      return dsl_class
     end
   end
 end
