@@ -172,6 +172,9 @@ module DSL
     #
     # This delegates to generate_dsl() for the majority of the work.
     #
+    # @note `args` could be a Hash (to be passed to generate_dsl()) or the result
+    # of a call to generate_dsl().
+    #
     # @param name  [String] the name of the entrypoint
     # @param args  [Hash]   the elements of the DSL block (passed to generate_dsl)
     # @param defn_block [Proc]   what is executed once the DSL block is parsed.
@@ -194,7 +197,11 @@ module DSL
       # yielding to generate_dsl() in some fashion.
       # FIXME: If we can pass &defn_block here, then I think we could fix the
       # recursive definition problem in multi_level_spec.rb
-      dsl_class = generate_dsl(args) {}
+      if args.is_a?(Class) && args.ancestors.include?(Boolean)
+        dsl_class = args
+      else
+        dsl_class = generate_dsl(args) {}
+      end
 
       define_singleton_method(name.to_sym) do |*args, &dsl_block|
         obj = dsl_class.new

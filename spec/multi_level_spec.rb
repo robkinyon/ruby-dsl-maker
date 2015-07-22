@@ -113,10 +113,7 @@ describe 'A multi-level DSL making family-trees' do
       }
       build_dsl_element(person, :child, person)
 
-      add_entrypoint(:person, {
-        :name => String,
-        :child => person,
-      }) do
+      add_entrypoint(:person, person) do
         Person.new(name, child)
       end
     end
