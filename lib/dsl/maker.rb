@@ -195,12 +195,10 @@ module DSL
 
       # FIXME: This is a wart. Really, we should be pulling out name, then
       # yielding to generate_dsl() in some fashion.
-      # FIXME: If we can pass &defn_block here, then I think we could fix the
-      # recursive definition problem in multi_level_spec.rb
       if args.is_a?(Class) && args.ancestors.include?(Boolean)
         dsl_class = args
       else
-        dsl_class = generate_dsl(args) {}
+        dsl_class = generate_dsl(args, &defn_block)
       end
 
       define_singleton_method(name.to_sym) do |*args, &dsl_block|

@@ -92,56 +92,43 @@ describe 'A multi-level DSL making family-trees' do
     expect(person.child.child.name).to eq('Judith')
   end
 
-  it "can define things recursively" do
-    # This really should be:
-    #dsl_class = Class.new(DSL::Maker) do
-    #  person_dsl = add_entrypoint(:person, {
-    #    :name => String,
-    #  }) do
-    #    Person.new(name, child)
-    #  end
-    #  build_dsl_element(person_dsl, :child, person_dsl)
-    #end
-    # But, :child doesn't have access to &defn_block that was passed to
-    # add_entrypoint().
-
-    dsl_class = Class.new(DSL::Maker) do
-      person = generate_dsl({
-        :name => String,
-      }) {
-        Person.new(name, child)
-      }
-      build_dsl_element(person, :child, person)
-
-      add_entrypoint(:person, person) do
-        Person.new(name, child)
+  describe "with recursion" do
+    it "can handle a single axis of recursion" do
+      dsl_class = Class.new(DSL::Maker) do
+        person_dsl = add_entrypoint(:person, {
+          :name => String,
+        }) do
+          Person.new(name, child)
+        end
+        build_dsl_element(person_dsl, :child, person_dsl)
       end
-    end
 
-    # This is taken from https://en.wikipedia.org/wiki/Family_tree_of_the_Bible
-    person = dsl_class.parse_dsl("
-      person {
-        name 'Adam'
-        child {
-          name 'Seth'
+      # This list of names is taken from
+      # https://en.wikipedia.org/wiki/Family_tree_of_the_Bible
+      person = dsl_class.parse_dsl("
+        person {
+          name 'Adam'
           child {
-            name 'Enos'
+            name 'Seth'
             child {
-              name 'Cainan'
+              name 'Enos'
               child {
-                name 'Mahalaleel'
+                name 'Cainan'
                 child {
-                  name 'Jared'
+                  name 'Mahalaleel'
                   child {
-                    name 'Enoch'
+                    name 'Jared'
                     child {
-                      name 'Methuselah'
+                      name 'Enoch'
                       child {
-                        name 'Lamech'
+                        name 'Methuselah'
                         child {
-                          name 'Noah'
+                          name 'Lamech'
                           child {
-                            name 'Shem'
+                            name 'Noah'
+                            child {
+                              name 'Shem'
+                            }
                           }
                         }
                       }
@@ -152,16 +139,52 @@ describe 'A multi-level DSL making family-trees' do
             }
           }
         }
-      }
-    ")
+      ")
 
-    [
-      'Adam', 'Seth', 'Enos', 'Cainan', 'Mahalaleel', 'Jared',
-      'Enoch', 'Methuselah', 'Lamech', 'Noah', 'Shem',
-    ].each do |name|
-      expect(person).to be_instance_of(Person)
-      expect(person.name).to eq(name)
-      person = person.child
+      [
+        'Adam', 'Seth', 'Enos', 'Cainan', 'Mahalaleel', 'Jared',
+        'Enoch', 'Methuselah', 'Lamech', 'Noah', 'Shem',
+      ].each do |name|
+        expect(person).to be_instance_of(Person)
+        expect(person.name).to eq(name)
+        person = person.child
+      end
+    end
+
+    it "can handle two axes of recursion" do
+      OtherPerson = Struct.new(:name, :mother, :father)
+      dsl_class = Class.new(DSL::Maker) do
+        person_dsl = add_entrypoint(:person, {
+          :name => String,
+        }) do
+          OtherPerson.new(name, mother, father)
+        end
+        build_dsl_element(person_dsl, :mother, person_dsl)
+        build_dsl_element(person_dsl, :father, person_dsl)
+      end
+
+      person = dsl_class.parse_dsl("
+        person {
+          name 'John Smith'
+          mother {
+            name 'Mary Smith'
+          }
+          father {
+            name 'Tom Smith'
+          }
+        }
+      ")
+
+      expect(person).to be_instance_of(OtherPerson)
+      expect(person.name).to eq('John Smith')
+
+      mother = person.mother
+      expect(mother).to be_instance_of(OtherPerson)
+      expect(mother.name).to eq('Mary Smith')
+
+      father = person.father
+      expect(father).to be_instance_of(OtherPerson)
+      expect(father.name).to eq('Tom Smith')
     end
   end
 end
