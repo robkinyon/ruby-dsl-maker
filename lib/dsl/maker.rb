@@ -183,6 +183,13 @@ class DSL::Maker
     return dsl_class
   end
 
+  # Returns the binding as needed by parse_dsl() and execute_dsl()
+  #
+  # @return [Binding] The binding of the invoking class.
+  def self.get_binding
+    binding
+  end
+
   # Add an entrypoint (top-level DSL element) to this class's DSL.
   #
   # This delegates to generate_dsl() for the majority of the work.
@@ -200,13 +207,6 @@ class DSL::Maker
     # DSL parsing. So, raise an error if we don't get one.
     # TODO: Provide a default block that returns the datastructure as a HoH.
     raise "Block required for add_entrypoint" unless block_given?
-
-    # Ensure that get_binding() exists in the child class. This is necessary to
-    # provide parse_dsl() so that eval works as expected. We have to do it here
-    # because this is the only place we know for certain will be called.
-    unless self.respond_to? :get_binding
-      define_singleton_method(:get_binding) { binding }
-    end
 
     # FIXME: This is a wart. Really, we should be pulling out name, then
     # yielding to generate_dsl() in some fashion.
