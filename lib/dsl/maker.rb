@@ -4,15 +4,8 @@ require 'docile'
 
 # This is the base class we provide.
 class DSL::Maker
-  # This is a useful class that contains all the Boolean handling we have.
-  class Boolean
-    {
-      :yes => true, :no  => false,
-      :on  => true, :off => false,
-    }.each do |name, result|
-      define_method(name) { result }
-    end
-
+  # This is the base class for all DSL-parsing classes.
+  class Base
     # 21 character method names are obscene. Make it easier to read.
     alias :___set :instance_variable_set
 
@@ -34,15 +27,26 @@ class DSL::Maker
       return
     end
   end
+
+  # This is a useful module that contains all the Boolean handling we need.
+  module Boolean
+    {
+      :yes => true, :no  => false,
+      :on  => true, :off => false,
+    }.each do |name, result|
+      define_method(name) { result }
+    end
+
+    def self.coerce(value)
+      if value
+        return false if %w(no off false nil).include? value.to_s.downcase
+      end
+      # The bang-bang boolean-izes the value. We want this to be lossy.
+      !!value
+    end
+  end
   Yes = On = True = true
   No = Off = False = false
-  $to_bool = lambda do |value|
-    if value
-      return false if %w(no off false nil).include? value.to_s.downcase
-    end
-    # The bang-bang boolean-izes the value. We want this to be lossy.
-    !!value
-  end
 
   # TODO: Is this safe if the invoker doesn't use parse_dsl()?
   @@accumulator = []
@@ -100,11 +104,11 @@ class DSL::Maker
         end
       end
     },
-    Boolean => ->(klass, name, type) {
+    DSL::Maker::Boolean => ->(klass, name, type) {
       as_attr = '@' + name.to_s
       klass.class_eval do
         define_method(name.to_sym) do |*args|
-          ___set(as_attr, $to_bool.call(args[0])) unless args.empty?
+          ___set(as_attr, Boolean.coerce(args[0])) unless args.empty?
           # Ensure that the default nil returns as false.
           !!___get(as_attr)
         end
@@ -113,7 +117,7 @@ class DSL::Maker
   }
 
   $is_dsl = lambda do |proto|
-    proto.is_a?(Class) && proto.ancestors.include?(Boolean)
+    proto.is_a?(Class) && proto.ancestors.include?(DSL::Maker::Base)
   end
 
   # Add a single element of a DSL to a class representing a level in a DSL.
@@ -174,7 +178,9 @@ class DSL::Maker
     # Inherit from the Boolean class to gain access to the useful methods
     # TODO: Convert DSL::Maker::Boolean into a Role
     # TODO: Create a DSL::Maker::Base class to inherit from
-    dsl_class = Class.new(Boolean) do
+    dsl_class = Class.new(DSL::Maker::Base) do
+      include DSL::Maker::Boolean
+
       # This instance method exists because we cannot seem to inline its work
       # where we call it. Could it be a problem of incorrect binding?
       # It has to be defined here because it needs access to &defn_block
