@@ -83,6 +83,13 @@ class DSL::Maker
     return @@accumulator
   end
 
+  # Returns the binding as needed by parse_dsl() and execute_dsl()
+  #
+  # @return [Binding] The binding of the invoking class.
+  def self.get_binding
+    binding
+  end
+
   @@dsl_elements = {
     String => ->(klass, name, type) {
       as_attr = '@' + name.to_s
@@ -105,6 +112,10 @@ class DSL::Maker
     },
   }
 
+  $is_dsl = lambda do |proto|
+    proto.is_a?(Class) && proto.ancestors.include?(Boolean)
+  end
+
   # Add a single element of a DSL to a class representing a level in a DSL.
   #
   # Each of the types represents a coercion - a guarantee and check of the value
@@ -123,7 +134,7 @@ class DSL::Maker
   def self.build_dsl_element(klass, name, type)
     if @@dsl_elements.has_key?(type)
       @@dsl_elements[type].call(klass, name, type)
-    elsif type.is_a?(Class) && type.ancestors.include?(Boolean)
+    elsif $is_dsl.call(type)
       as_attr = '@' + name.to_s
       klass.class_eval do
         define_method(name.to_sym) do |*args, &dsl_block|
@@ -183,13 +194,6 @@ class DSL::Maker
     return dsl_class
   end
 
-  # Returns the binding as needed by parse_dsl() and execute_dsl()
-  #
-  # @return [Binding] The binding of the invoking class.
-  def self.get_binding
-    binding
-  end
-
   # Add an entrypoint (top-level DSL element) to this class's DSL.
   #
   # This delegates to generate_dsl() for the majority of the work.
@@ -210,7 +214,7 @@ class DSL::Maker
 
     # FIXME: This is a wart. Really, we should be pulling out name, then
     # yielding to generate_dsl() in some fashion.
-    if args.is_a?(Class) && args.ancestors.include?(Boolean)
+    if $is_dsl.call(args)
       dsl_class = args
     else
       dsl_class = generate_dsl(args, &defn_block)
