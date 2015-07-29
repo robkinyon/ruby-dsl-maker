@@ -1,8 +1,8 @@
 # This will use a DSL that defines $Cars
 
 describe "A DSL describing cars used with multiple invocations" do
-  $Car = Struct.new(:maker)
-  $Truck = Struct.new(:maker)
+  $Car = Struct.new(:maker, :wheel)
+  $Truck = Struct.new(:maker, :wheel)
 
   it "returns two items in the right order" do
     dsl_class = Class.new(DSL::Maker) do

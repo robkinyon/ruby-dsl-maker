@@ -45,12 +45,20 @@ describe "DSL::Maker validation" do
     end
   end
 
-  it "rejects re-using an entrypoint name" do
+  it "rejects re-using an entrypoint name in add_entrypoint()" do
     dsl_class = Class.new(DSL::Maker) do
       add_entrypoint(:x, {}) { nil }
     end
     expect {
       dsl_class.add_entrypoint(:x, {}) { nil }
     }.to raise_error("'x' is already an entrypoint")
+  end
+
+  it "rejects an entrypoint name that doesn't exist in entrypoint()" do
+    dsl_class = Class.new(DSL::Maker)
+
+    expect {
+      dsl_class.entrypoint(:x)
+    }.to raise_error("'x' is not an entrypoint")
   end
 end

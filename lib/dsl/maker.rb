@@ -48,9 +48,6 @@ class DSL::Maker
   Yes = On = True = true
   No = Off = False = false
 
-  # TODO: Is this safe if the invoker doesn't use parse_dsl()?
-  @@accumulator = []
-
   # Parse the DSL provided in the parameter.
   #
   # @note If the DSL contains multiple entrypoints, then this will return an
@@ -60,14 +57,14 @@ class DSL::Maker
   #
   # @return    [Object] Whatever is returned by the block defined in this class.
   def self.parse_dsl(dsl)
-    # add_entrypoint() will use @@accumulator to handle multiple entrypoints.
+    # add_entrypoint() will use @accumulator to handle multiple entrypoints.
     # Reset it here so that we're only handling the values from this run.
-    @@accumulator = []
+    @accumulator = []
     eval dsl, self.get_binding
-    if @@accumulator.length <= 1
-      return @@accumulator[0]
+    if @accumulator.length <= 1
+      return @accumulator[0]
     end
-    return @@accumulator
+    return @accumulator
   end
 
   # Execute the DSL provided in the block.
@@ -79,12 +76,12 @@ class DSL::Maker
   #
   # @return    [Object] Whatever is returned by &block
   def self.execute_dsl(&block)
-    @@accumulator = []
+    @accumulator = []
     instance_eval(&block)
-    if @@accumulator.length <= 1
-      return @@accumulator[0]
+    if @accumulator.length <= 1
+      return @accumulator[0]
     end
-    return @@accumulator
+    return @accumulator
   end
 
   # Returns the binding as needed by parse_dsl() and execute_dsl()
@@ -234,10 +231,24 @@ class DSL::Maker
       obj = dsl_class.new
       Docile.dsl_eval(obj, &dsl_block) if dsl_block
       rv = obj.instance_exec(*args, &defn_block)
-      @@accumulator.push(rv)
+      @accumulator.push(rv)
       return rv
     end
 
-    return dsl_class
+    @entrypoints ||= {}
+    return @entrypoints[name.to_sym] = dsl_class
+  end
+
+  # This returns the DSL corresponding to the entrypoint's name.
+  #
+  # @param name  [String] the name of the entrypoint
+  # 
+  # @return      [Class]  The class that implements this name's DSL definition.
+  def self.entrypoint(name)
+    unless self.respond_to?(name.to_sym)
+      raise "'#{name.to_s}' is not an entrypoint"
+    end
+
+    return @entrypoints[name.to_sym]
   end
 end
