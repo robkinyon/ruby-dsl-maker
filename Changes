@@ -2,12 +2,14 @@ Revision history for DSL::Maker (ordered by revision number).
 
 0.0.3 Jul 28 2015
    - Added entrypoint() that returns the DSL implementing an entrypoint
-   - Several refactorings to improve maintainability
+   - Several refactorings to improve maintainability:
+      - DSL::Maker::Boolean is now a mixin, not a base class
+      - DSL::Maker::Base is now the base class for all the DSL classes
 
 0.0.2 Jul 22 2015
    - Allow add_entrypoint() to take a DSL class instead of args
    - Added execute_dsl() that takes a block
-   - Several refactorings to improve maintainability
+   - Several refactorings to improve maintainability:
       - Recursive DSLs are now simpler to define and maintain
 
 0.0.1 Jul 21 2015

@@ -91,6 +91,8 @@ class DSL::Maker
     binding
   end
 
+  # FIXME: This may have to be changed when the elements can be altered because
+  # it is global to the hierarchy. But, that may be desirable.
   @@dsl_elements = {
     String => ->(klass, name, type) {
       as_attr = '@' + name.to_s
