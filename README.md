@@ -268,7 +268,7 @@ you get back an `Array` with everything in the right order.
 
 ### Class Methods
 
-DSL::Maker provides five class methods - three for constructing your DSL and two
+DSL::Maker provides six class methods - four for constructing your DSL and two
 for parsing your DSL.
 
 * `add_entrypoint(Symbol, Hash={}, Block)`
@@ -277,6 +277,13 @@ This is used in defining your DSL class to create an entrypoint - the highest
 level of your DSL. `add_entrypoint()` will create the right class methods for
 Docile to use when `parse_dsl()` is called. It will also invoke `generate_dsl()`
 with the Hash you give it to create the parsing.
+
+* `entrypoint(Symbol)`
+
+This returns the DSL defined by a previous call to `add_entrypoint()`.
+
+This is primarily useful if you want to take a DSL class and use it within another
+DSL class.
 
 * `generate_dsl(Hash={}, Block)`
 
@@ -293,11 +300,11 @@ the tests in `spec/multi_level_spec.rb` for an example of this.
 * `parse_dsl(String)` / `execute_dsl(&block)`
 
 You call this on your DSL class when you're ready to invoke your DSL. It will
-return whatever the block provided `add_entrypoint()` returns.
+return whatever the block provided to `add_entrypoint()` returns.
 
 In the case of multiple DSL entrypoints (for example, a normal Chef recipe),
-these methods will return an array with all the return values in the order of
-invocation.
+these methods will return an array with all the return values in the order they
+were encountered.
 
 ### Coercions
 
@@ -313,10 +320,12 @@ You will be able to add your own coercions in a forthcoming version of DSL::Make
 
 There is one pre-defined helper.
 
-* `default(String, Array, Integer=0)`
+  * `default(String, Array, Integer=0)`
 
 This takes a method name and the args provided to the block. It then ensures that
 the method defaults to the value in the args at the optional third argument.
+
+You will be able to add your own helpers in a forthcoming version of DSL::Maker.
 
 ## Installation
 
@@ -324,7 +333,15 @@ the method defaults to the value in the args at the optional third argument.
 $ gem install dsl_maker
 ```
 
+## TODO
+
+* Add support for Arrays
+* Add additional coercions (e.g., Number)
+* Allow you to add your own coercions
+* Allow you to add your own helpers
+
 ## Links
+
 * [Source](https://github.com/robkinyon/ruby-dsl-maker)
 * [Documentation](http://rubydoc.info/gems/ruby-dsl-maker)
 * [Bug Tracker](https://github.com/robkinyon/ruby-dsl-maker/issues)
