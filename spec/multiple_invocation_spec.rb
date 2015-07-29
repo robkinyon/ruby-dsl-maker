@@ -1,15 +1,15 @@
-# This will use a DSL that defines Cars
+# This will use a DSL that defines $Cars
 
 describe "A DSL describing cars used with multiple invocations" do
-  Car = Struct.new(:maker)
-  Truck = Struct.new(:maker)
+  $Car = Struct.new(:maker)
+  $Truck = Struct.new(:maker)
 
   it "returns two items in the right order" do
     dsl_class = Class.new(DSL::Maker) do
       add_entrypoint(:car, {
         :maker => String,
       }) do
-        Car.new(maker)
+        $Car.new(maker)
       end
     end
 
@@ -19,9 +19,9 @@ describe "A DSL describing cars used with multiple invocations" do
     ")
     expect(cars).to be_instance_of(Array)
     expect(cars.length).to eq(2)
-    expect(cars[0]).to be_instance_of(Car)
+    expect(cars[0]).to be_instance_of($Car)
     expect(cars[0].maker).to eq('Honda')
-    expect(cars[1]).to be_instance_of(Car)
+    expect(cars[1]).to be_instance_of($Car)
     expect(cars[1].maker).to eq('Acura')
   end
 
@@ -30,12 +30,12 @@ describe "A DSL describing cars used with multiple invocations" do
       add_entrypoint(:car, {
         :maker => String,
       }) do
-        Car.new(maker)
+        $Car.new(maker)
       end
       add_entrypoint(:truck, {
         :maker => String,
       }) do
-        Truck.new(maker)
+        $Truck.new(maker)
       end
     end
 
@@ -46,11 +46,11 @@ describe "A DSL describing cars used with multiple invocations" do
     ")
     expect(vehicles).to be_instance_of(Array)
     expect(vehicles.length).to eq(3)
-    expect(vehicles[0]).to be_instance_of(Truck)
+    expect(vehicles[0]).to be_instance_of($Truck)
     expect(vehicles[0].maker).to eq('Ford')
-    expect(vehicles[1]).to be_instance_of(Car)
+    expect(vehicles[1]).to be_instance_of($Car)
     expect(vehicles[1].maker).to eq('Honda')
-    expect(vehicles[2]).to be_instance_of(Truck)
+    expect(vehicles[2]).to be_instance_of($Truck)
     expect(vehicles[2].maker).to eq('Toyota')
   end
 
@@ -59,12 +59,12 @@ describe "A DSL describing cars used with multiple invocations" do
       add_entrypoint(:car, {
         :maker => String,
       }) do
-        Car.new(maker)
+        $Car.new(maker)
       end
       add_entrypoint(:truck, {
         :maker => String,
       }) do
-        Truck.new(maker)
+        $Truck.new(maker)
       end
     end
 
@@ -75,11 +75,11 @@ describe "A DSL describing cars used with multiple invocations" do
     end
     expect(vehicles).to be_instance_of(Array)
     expect(vehicles.length).to eq(3)
-    expect(vehicles[0]).to be_instance_of(Truck)
+    expect(vehicles[0]).to be_instance_of($Truck)
     expect(vehicles[0].maker).to eq('Ford')
-    expect(vehicles[1]).to be_instance_of(Car)
+    expect(vehicles[1]).to be_instance_of($Car)
     expect(vehicles[1].maker).to eq('Honda')
-    expect(vehicles[2]).to be_instance_of(Truck)
+    expect(vehicles[2]).to be_instance_of($Truck)
     expect(vehicles[2].maker).to eq('Toyota')
   end
 end

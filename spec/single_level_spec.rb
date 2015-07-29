@@ -12,10 +12,10 @@
 # class name. If we created real classes, the context would be provided for us.
 describe 'A single-level DSL for pizza' do
   $toppings = [:cheese, :pepperoni, :bacon, :sauce]
-  Pizza = Struct.new(*$toppings)
+  $Pizza = Struct.new(*$toppings)
 
   def verify_pizza(pizza, values={})
-    expect(pizza).to be_instance_of(Pizza)
+    expect(pizza).to be_instance_of($Pizza)
     $toppings.each do |topping|
       expect(pizza.send(topping)).to eq(values[topping])
     end
@@ -23,7 +23,7 @@ describe 'A single-level DSL for pizza' do
 
   it 'makes a blank pizza' do
     dsl_class = Class.new(DSL::Maker) do
-      add_entrypoint(:pizza) { Pizza.new }
+      add_entrypoint(:pizza) { $Pizza.new }
     end
 
     pizza = dsl_class.parse_dsl('pizza')
@@ -36,7 +36,7 @@ describe 'A single-level DSL for pizza' do
       add_entrypoint(:pizza, {
         :cheese => DSL::Maker::Boolean,
       }) do
-        Pizza.new(cheese, nil, nil, nil)
+        $Pizza.new(cheese, nil, nil, nil)
       end
     end
 
@@ -84,7 +84,7 @@ describe 'A single-level DSL for pizza' do
       add_entrypoint(:pizza, {
         :sauce => String,
       }) do
-        Pizza.new(nil, nil, nil, sauce)
+        $Pizza.new(nil, nil, nil, sauce)
       end
     end
 
@@ -112,7 +112,7 @@ describe 'A single-level DSL for pizza' do
 
       # This is a wart - this block should be against toppings_dsl, not here.
       add_entrypoint(:pizza, toppings_dsl) do
-        Pizza.new(cheese, pepperoni, bacon, sauce)
+        $Pizza.new(cheese, pepperoni, bacon, sauce)
       end
     end
 
@@ -143,7 +143,7 @@ describe 'A single-level DSL for pizza' do
 
       # This is a wart - this block should be against toppings_dsl, not here.
       add_entrypoint(:pizza, toppings_dsl) do
-        Pizza.new(cheese, pepperoni, bacon, sauce)
+        $Pizza.new(cheese, pepperoni, bacon, sauce)
       end
     end
 

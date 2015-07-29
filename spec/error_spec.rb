@@ -44,4 +44,13 @@ describe "DSL::Maker validation" do
       }.to raise_error("Illegal attribute name '#{name}'")
     end
   end
+
+  it "rejects re-using an entrypoint name" do
+    dsl_class = Class.new(DSL::Maker) do
+      add_entrypoint(:x, {}) { nil }
+    end
+    expect {
+      dsl_class.add_entrypoint(:x, {}) { nil }
+    }.to raise_error("'x' is already an entrypoint")
+  end
 end

@@ -218,6 +218,10 @@ class DSL::Maker
     # TODO: Provide a default block that returns the datastructure as a HoH.
     raise "Block required for add_entrypoint" unless block_given?
 
+    if self.respond_to?(name.to_sym)
+      raise "'#{name.to_s}' is already an entrypoint"
+    end
+
     # FIXME: This is a wart. Really, we should be pulling out name, then
     # yielding to generate_dsl() in some fashion.
     if $is_dsl.call(args)
