@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rake', '~> 10'
   s.add_development_dependency 'rspec', '~> 3.0.0', '>= 3.0.0'
   s.add_development_dependency 'simplecov', '~> 0'
+  s.add_development_dependency 'rubygems-tasks', '~> 0'
 
   # To limit needed compatibility with versions of dependencies, only configure
   #   yard doc generation when *not* on Travis, JRuby, or 1.8
