@@ -254,6 +254,14 @@ class DSL::Maker
     return @entrypoints[name.to_sym]
   end
 
+  # This adds a helper function that's accessible within the DSL.
+  #
+  # Note: These helpers are global to all DSLs.
+  #
+  # @param name   [String] the name of the helper
+  # @param &block [Block]  The function to be executed when the helper is called.
+  # 
+  # @return nil
   def self.add_helper(name, &block)
     raise "Block required for add_helper" unless block_given?
 
@@ -264,5 +272,7 @@ class DSL::Maker
     DSL::Maker::Base.class_eval do
       define_method(name.to_sym, &block)
     end
+
+    return
   end
 end
