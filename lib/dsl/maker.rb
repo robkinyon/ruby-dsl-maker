@@ -78,27 +78,52 @@ class DSL::Maker
 
   # FIXME: This may have to be changed when the elements can be altered because
   # it is global to the hierarchy. But, that may be desirable.
-  @@dsl_elements = {
-    String => ->(klass, name, type) {
+  @@types = {}
+
+  # This adds a type coercion that's used when creating the DSL.
+  #
+  # Note: These type coercions are global to all DSLs.
+  #
+  # @param type   [Object] the name of the helper
+  # @param &block [Block]  The function to be executed when the coercion is exercised.
+  #
+  # Your block will receive the following signature: |attr, *args| where 'attr' is
+  # the name of the attribute and *args are the arguments passed into your method.
+  # You are responsible for acting as a mutator. You have ___get() and ___set()
+  # available for your use. These are aliases to instance_variable_get and
+  # instance_variable_set, respectively. Please read the coercions provided for
+  # you in this source file.
+  # 
+  # @return nil
+  def self.add_type(type, &block)
+    raise "Block required for add_type" unless block_given?
+    raise "'#{type}' is already a type coercion" if @@types.has_key? type
+
+    @@types[type] = ->(klass, name, type) {
       as_attr = '@' + name.to_s
       klass.class_eval do
         define_method(name.to_sym) do |*args|
-          ___set(as_attr, args[0].to_s) unless args.empty?
-          ___get(as_attr)
+          instance_exec(as_attr, *args, &block)
         end
       end
-    },
-    DSL::Maker::Boolean => ->(klass, name, type) {
-      as_attr = '@' + name.to_s
-      klass.class_eval do
-        define_method(name.to_sym) do |*args|
-          ___set(as_attr, Boolean.coerce(args[0])) unless args.empty?
-          # Ensure that the default nil returns as false.
-          !!___get(as_attr)
-        end
-      end
-    },
-  }
+    }
+
+    return
+  end
+
+  add_type(Integer) do |attr, *args|
+    ___set(attr, args[0].to_i) unless args.empty?
+    ___get(attr)
+  end
+  add_type(String) do |attr, *args|
+    ___set(attr, args[0].to_s) unless args.empty?
+    ___get(attr)
+  end
+  add_type(Boolean) do |attr, *args|
+    ___set(attr, Boolean.coerce(args[0])) unless args.empty?
+    # Ensure that the default nil also returns as false.
+    !!___get(attr)
+  end
 
   $is_dsl = lambda do |proto|
     proto.is_a?(Class) && proto.ancestors.include?(DSL::Maker::Base)
@@ -107,21 +132,22 @@ class DSL::Maker
   # Add a single element of a DSL to a class representing a level in a DSL.
   #
   # Each of the types represents a coercion - a guarantee and check of the value
-  # in that name. The standard coercions are:
+  # in that name. The standard type coercions are:
   #
   #   * String  - whatever you give is returned.
+  #   * Integer - the integer value of whatever you give is returned.
   #   * Boolean - the truthiness of whatever you give is returned.
   #   * generate_dsl() - this represents a new level of the DSL.
   #
   # @param klass [Class]  The class representing this level in the DSL.
   # @param name  [String] The name of the element we're working on.
   # @param type  [Class]  The type of this element we're working on.
-  #                       This is the coercion spoken above.
+  #                       This is the type coercion spoken above.
   #
   # @return   nil
   def self.build_dsl_element(klass, name, type)
-    if @@dsl_elements.has_key?(type)
-      @@dsl_elements[type].call(klass, name, type)
+    if @@types.has_key?(type)
+      @@types[type].call(klass, name, type)
     elsif $is_dsl.call(type)
       as_attr = '@' + name.to_s
       klass.class_eval do
@@ -206,8 +232,6 @@ class DSL::Maker
       raise "'#{name.to_s}' is already an entrypoint"
     end
 
-    # FIXME: This is a wart. Really, we should be pulling out name, then
-    # yielding to generate_dsl() in some fashion.
     if $is_dsl.call(args)
       dsl_class = args
     else

@@ -8,7 +8,7 @@ describe "Passing a class into generate_dsl" do
   it "can do it" do
     wheel_dsl = Class.new(DSL::Maker) do
       add_entrypoint(:wheel, {
-        :size => String,
+        :size => Integer,
         :maker => String,
       }) do |*args|
         default(:maker, args, 0)
@@ -37,7 +37,7 @@ describe "Passing a class into generate_dsl" do
     expect(car.maker).to eq('honda')
     expect(car.wheel).to be_instance_of($Wheel)
     expect(car.wheel.maker).to eq('goodyear')
-    expect(car.wheel.size).to eq('26')
+    expect(car.wheel.size).to eq(26)
   end
 
   # This ensures that if we create multiple entrypoints with the same name, they
@@ -45,7 +45,7 @@ describe "Passing a class into generate_dsl" do
   it "will not tramp on the entrypoints with the same name" do
     wheel_dsl = Class.new(DSL::Maker) do
       add_entrypoint(:wheel, {
-        :size => String,
+        :size => Integer,
         :maker => String,
       }) do |*args|
         default(:maker, args, 0)
@@ -78,6 +78,6 @@ describe "Passing a class into generate_dsl" do
     expect(car.maker).to eq('honda')
     expect(car.wheel).to be_instance_of($Wheel)
     expect(car.wheel.maker).to eq('goodyear')
-    expect(car.wheel.size).to eq('26')
+    expect(car.wheel.size).to eq(26)
   end
 end

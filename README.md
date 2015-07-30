@@ -300,6 +300,13 @@ This is normally called by `generate_dsl()` to actually construct the DSL elemen
 It is provided for you so that you can create recursive DSL definitions. Look at
 the tests in `spec/multi_level_spec.rb` for an example of this.
 
+* `add_type(Object, Block)`
+
+This is used to create type coercions that are used when defining your DSL. These
+are treated at the same level as the default type coercions described below.
+
+This creates global type coercions that are available to every DSL definition.
+
 * `add_helper(Symbol, Block)`
 
 This is used to create helper methods (similar to `default`, described below) that
@@ -316,15 +323,16 @@ In the case of multiple DSL entrypoints (for example, a normal Chef recipe),
 these methods will return an array with all the return values in the order they
 were encountered.
 
-### Coercions
+### Type Coercions
 
-There are three defined coercions for use within `generate_dsl()`:
+There are four pre-defined type coercions for use within `generate_dsl()`:
 
-  * String - This takes any string.
+  * String - This takes whatever you give it and returns the string within it.
+  * Integer - This takes whatever you give it and returns the integer within it.
   * Boolean - This takes whatever you give it and returns the truthiness of it.
   * `generate_dsl()` - This descends into another level of DSL.
 
-You will be able to add your own coercions in a forthcoming version of DSL::Maker.
+You can add additional type coercions using `add_type()` as described above.
 
 ### Helpers
 
@@ -335,7 +343,7 @@ There is one pre-defined helper.
 This takes a method name and the args provided to the block. It then ensures that
 the method defaults to the value in the args at the optional third argument.
 
-You can add additional helpers using `add_helper()` described above.
+You can add additional helpers using `add_helper()` as described above.
 
 ## Installation
 
@@ -346,8 +354,6 @@ $ gem install dsl_maker
 ## TODO
 
 * Add support for Arrays
-* Add additional coercions (e.g., Number)
-* Allow you to add your own coercions
 
 ## Links
 
