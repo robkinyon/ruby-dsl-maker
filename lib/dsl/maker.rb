@@ -253,4 +253,16 @@ class DSL::Maker
 
     return @entrypoints[name.to_sym]
   end
+
+  def self.add_helper(name, &block)
+    raise "Block required for add_helper" unless block_given?
+
+    if DSL::Maker::Base.new.respond_to? name.to_sym
+      raise "'#{name.to_s}' is already a helper"
+    end
+
+    DSL::Maker::Base.class_eval do
+      define_method(name.to_sym, &block)
+    end
+  end
 end

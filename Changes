@@ -1,6 +1,8 @@
 Revision history for DSL::Maker (ordered by revision number).
 
-0.0.4 Jul ?? 2015
+0.0.4 Jul 29 2015
+   - Added add_helper() to allow the user to define new helper methods for use
+     within the DSL.
    - Added missing documentation in README for new features in 0.0.3
    - Added TODO list in documentation
 

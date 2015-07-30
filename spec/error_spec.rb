@@ -61,4 +61,29 @@ describe "DSL::Maker validation" do
       dsl_class.entrypoint(:x)
     }.to raise_error("'x' is not an entrypoint")
   end
+
+  it "rejects a helper without a block" do
+    dsl_class = Class.new(DSL::Maker)
+
+    expect {
+      dsl_class.add_helper(:x)
+    }.to raise_error('Block required for add_helper')
+  end
+
+  it "rejects the helper name default" do
+    dsl_class = Class.new(DSL::Maker)
+
+    expect {
+      dsl_class.add_helper(:default) {}
+    }.to raise_error("'default' is already a helper")
+  end
+
+  it "rejects a helper name already in use" do
+    dsl_class = Class.new(DSL::Maker)
+    dsl_class.add_helper(:x) {}
+
+    expect {
+      dsl_class.add_helper(:x) {}
+    }.to raise_error("'x' is already a helper")
+  end
 end

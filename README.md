@@ -9,7 +9,6 @@
 [![Code Coverage](https://img.shields.io/codecov/c/github/robkinyon/ruby-dsl-maker.svg)](https://codecov.io/github/robkinyon/ruby-dsl-maker)
 [![Inline docs](http://inch-ci.org/github/robkinyon/ruby-dsl-maker.png)](http://inch-ci.org/github/robkinyon/ruby-dsl-maker)
 
-
 Writing single-level Ruby-like DSLs is really easy. Ruby practically builds them
 for you with a little meta-programming. [Docile](https://github.com/ms-ati/docile)
 makes it ridiculously easy and there are nearly a dozen other modules to do so.
@@ -55,9 +54,6 @@ class PizzaBuilder
     Pizza.new(!!@cheese, !!@pepperoni, !!@bacon, @sauce)
   end
 end
-
-PizzaBuilder.new.cheese.pepperoni.sauce(:extra).build
-#=> #<Pizza:0x00001009dc398 @cheese=true, @pepperoni=true, @bacon=false, @sauce=:extra>
 ```
 
 But, this doesn't actually implement the DSL. That is left for another snippet:
@@ -85,7 +81,14 @@ class PizzaBuilder < DSL::Maker
   end
 end
 
-pizza = PizzaBuilder.parse_dsl(dsl_block)
+pizza = PizzaBuilder.parse_dsl("
+  pizza {
+    cheese yes
+    pepperoni Yes
+    bacon On
+    sauce 'extra'
+  }
+")
 ```
 
 Now, you accept the strings (possibly from `IO.read()`) and magically get the
@@ -132,7 +135,7 @@ john_smith = FamilyTree.parse_dsl("
 ")
 ```
 
-Refactor that a bit and we end up with:
+Pretty easy. We can even refactor that a bit and end up with:
 
 ```ruby
 class FamilyTree < DSL::Maker
@@ -268,7 +271,7 @@ you get back an `Array` with everything in the right order.
 
 ### Class Methods
 
-DSL::Maker provides six class methods - four for constructing your DSL and two
+DSL::Maker provides seven class methods - five for constructing your DSL and two
 for parsing your DSL.
 
 * `add_entrypoint(Symbol, Hash={}, Block)`
@@ -296,6 +299,13 @@ return value provided back to the name.
 This is normally called by `generate_dsl()` to actually construct the DSL element.
 It is provided for you so that you can create recursive DSL definitions. Look at
 the tests in `spec/multi_level_spec.rb` for an example of this.
+
+* `add_helper(Symbol, Block)`
+
+This is used to create helper methods (similar to `default`, described below) that
+are used within the DSL.
+
+This creates global helpers that are available at every level of your DSLs.
 
 * `parse_dsl(String)` / `execute_dsl(&block)`
 
@@ -325,7 +335,7 @@ There is one pre-defined helper.
 This takes a method name and the args provided to the block. It then ensures that
 the method defaults to the value in the args at the optional third argument.
 
-You will be able to add your own helpers in a forthcoming version of DSL::Maker.
+You can add additional helpers using `add_helper()` described above.
 
 ## Installation
 
@@ -338,7 +348,6 @@ $ gem install dsl_maker
 * Add support for Arrays
 * Add additional coercions (e.g., Number)
 * Allow you to add your own coercions
-* Allow you to add your own helpers
 
 ## Links
 
