@@ -11,21 +11,6 @@ class DSL::Maker
 
     # 21 character method names are obscene. Make it easier to read.
     alias :___get :instance_variable_get
-
-    # A helper method for handling defaults from args easily.
-    # 
-    # @param method_name [String]  The name of the attribute being defaulted.
-    # @param args        [Array]   The arguments provided to the block.
-    # @param position    [Integer] The index in args to work with, default 0.
-    #
-    # @return nil
-    def default(method_name, args, position=0)
-      method = method_name.to_sym
-      if args.length >= (position + 1) && !self.send(method)
-        self.send(method, args[position])
-      end
-      return
-    end
   end
 
   # This is a useful module that contains all the Boolean handling we need.
@@ -273,6 +258,21 @@ class DSL::Maker
       define_method(name.to_sym, &block)
     end
 
+    return
+  end
+
+  # A helper method for handling defaults from args easily.
+  #
+  # @param method_name [String]  The name of the attribute being defaulted.
+  # @param args        [Array]   The arguments provided to the block.
+  # @param position    [Integer] The index in args to work with, default 0.
+  #
+  # @return nil
+  add_helper(:default) do |method_name, args, position=0|
+    method = method_name.to_sym
+    if args.length >= (position + 1) && !self.send(method)
+      self.send(method, args[position])
+    end
     return
   end
 end
