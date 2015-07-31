@@ -88,11 +88,11 @@ class DSL::Maker
   # @param &block [Block]  The function to be executed when the coercion is exercised.
   #
   # Your block will receive the following signature: |attr, *args| where 'attr' is
-  # the name of the attribute and *args are the arguments passed into your method.
-  # You are responsible for acting as a mutator. You have ___get() and ___set()
-  # available for your use. These are aliases to instance_variable_get and
-  # instance_variable_set, respectively. Please read the coercions provided for
-  # you in this source file.
+  # the name of the attribute and *args are the arguments passed into your method
+  # within the DSL. You are responsible for acting as a mutator. You have ___get()
+  # and ___set() available for your use. These are aliases to
+  # instance_variable_get and instance_variable_set, respectively. Please read the
+  # coercions provided for you in this source file as examples.
   # 
   # @return nil
   def self.add_type(type, &block)
@@ -100,10 +100,9 @@ class DSL::Maker
     raise "'#{type}' is already a type coercion" if @@types.has_key? type
 
     @@types[type] = ->(klass, name, type) {
-      as_attr = '@' + name.to_s
       klass.class_eval do
         define_method(name.to_sym) do |*args|
-          instance_exec(as_attr, *args, &block)
+          instance_exec('@' + name.to_s, *args, &block)
         end
       end
     }
