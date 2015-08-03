@@ -72,6 +72,24 @@ describe "DSL::Maker validation" do
     end
   end
 
+  describe "for verifications" do
+    it "requires a block for :add_verification" do
+      expect {
+        Class.new(DSL::Maker) do
+          add_verification(:pizza)
+        end
+      }.to raise_error('Block required for add_verification')
+    end
+
+    it "rejects an verification name that doesn't exist in entrypoint()" do
+      dsl_class = Class.new(DSL::Maker)
+
+      expect {
+        dsl_class.add_verification(:x) {}
+      }.to raise_error("'x' is not an entrypoint for a verification")
+    end
+  end
+
   describe "for helpers" do
     it "rejects a helper without a block" do
       dsl_class = Class.new(DSL::Maker)

@@ -1,6 +1,7 @@
 Revision history for DSL::Maker (ordered by revision number).
 
 0.0.6 Aug ?? 2015
+   - Added add_verification(name?) to allow for runtime verifications
    - Don't require a dummy block when passing a DSL class to add_entrypoint.
    - Refactored several items into private methods
    - Pulled the provided types and helpers out of the class definition

@@ -184,7 +184,9 @@ class DSL::Maker
   # 
   # @return      [Class]  The class that implements this level's DSL definition.
   def self.add_entrypoint(name, args={}, &defn_block)
-    if self.respond_to?(name.to_sym)
+    symname = name.to_sym
+
+    if self.respond_to?(symname)
       raise "'#{name.to_s}' is already an entrypoint"
     end
 
@@ -199,16 +201,24 @@ class DSL::Maker
       dsl_class = generate_dsl(args, &defn_block)
     end
 
-    define_singleton_method(name.to_sym) do |*args, &dsl_block|
+    define_singleton_method(symname) do |*args, &dsl_block|
       obj = dsl_class.new
       Docile.dsl_eval(obj, &dsl_block) if dsl_block
       rv = obj.__apply(*args)
+
+      if @verifications && @verifications.has_key?(symname)
+        @verifications[symname].each do |verify|
+          failure = verify.call(rv)
+          raise failure if failure
+        end
+      end
+
       @accumulator.push(rv)
       return rv
     end
 
     @entrypoints ||= {}
-    return @entrypoints[name.to_sym] = dsl_class
+    return @entrypoints[symname] = dsl_class
   end
 
   # This returns the DSL corresponding to the entrypoint's name.
@@ -217,7 +227,7 @@ class DSL::Maker
   # 
   # @return      [Class]  The class that implements this name's DSL definition.
   def self.entrypoint(name)
-    unless self.respond_to?(name.to_sym)
+    unless __is_entrypoint(name)
       raise "'#{name.to_s}' is not an entrypoint"
     end
 
@@ -246,6 +256,37 @@ class DSL::Maker
     return
   end
 
+  # This adds a verification that's executed after the DSL is finished parsing.
+  #
+  # The verification will be called with the value(s) returned by the entrypoint's
+  # execution. If the verification returns a true value (of any kind), then that
+  # will be raised as a runtime exception.
+  #
+  # Note: These verifications are specific to the DSL you add them to.
+  # Note: Verifications are called in the order you specify them.
+  #
+  # @param name   [String] the name of the entrypoint to add a verification to
+  # @param &block [Block]  The function to be executed when verifications execute
+  # 
+  # @return nil
+  def self.add_verification(name, &block)
+    raise "Block required for add_verification" unless block_given?
+    raise "'#{name.to_s}' is not an entrypoint for a verification" unless __is_entrypoint(name)
+
+    @verifications ||= {}
+    @verifications[name.to_sym] ||= []
+
+    # This craziness converts the block provided into a proc that can be called
+    # in add_entrypoint(). Taken from http://stackoverflow.com/a/2946734/1732954
+    # Note: self is not preserved. This should be okay because the verification
+    # should only care about the value provided.
+    obj = Object.new
+    obj.define_singleton_method(:_, &block)
+    @verifications[name.to_sym].push(obj.method(:_).to_proc)
+
+    return
+  end
+
   private
 
   # Returns the binding as needed by parse_dsl() and execute_dsl()
@@ -270,6 +311,10 @@ class DSL::Maker
 
   def self.__is_dsl(proto)
     proto.is_a?(Class) && proto.ancestors.include?(DSL::Maker::Base)
+  end
+
+  def self.__is_entrypoint(name)
+    respond_to?(name.to_sym)
   end
 end
 
