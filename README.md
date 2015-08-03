@@ -353,7 +353,16 @@ $ gem install dsl_maker
 
 ## TODO
 
-* Add support for Arrays
+* Add support for Arrays (ArrayOf[Type]?)
+* Add support for generating useful errors (ideally with line numbers ... ?)
+* Add support for auto-generating documentation
+* Add default block that returns a Struct-of-Structs named after entrypoints
+* Add example of binary to execute a DSL
+* Add example of/link to validation and production of data structure
+   * 3-part DSL handling
+* DSL for DSL construction
+* Add "include" helper that loads another file and continues the execution
+   * Should provide useful directory searching
 
 ## Links
 
