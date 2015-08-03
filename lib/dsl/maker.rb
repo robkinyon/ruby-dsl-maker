@@ -11,6 +11,12 @@ class DSL::Maker
 
     # 21 character method names are obscene. Make it easier to read.
     alias :___get :instance_variable_get
+
+    private
+
+    #def self.method_missing(name, *args)
+    #  raise "'#{name}' is not an method"
+    #end
   end
 
   # This is a useful module that contains all the Boolean handling we need.
@@ -196,6 +202,13 @@ class DSL::Maker
       define_method(:__apply) do |*args|
         instance_exec(*args, &defn_block)
       end
+
+      define_method(:method_missing) do |name, *args|
+        raise "'#{name}' is not an method"
+      end
+      define_singleton_method(:method_missing) do |name, *args|
+        raise "'#{name}' is not an method"
+      end
     end
 
     args.each do |name, type|
@@ -297,5 +310,14 @@ class DSL::Maker
       self.send(method, args[position])
     end
     return
+  end
+
+  private
+
+  def method_missing(name, *args)
+    raise "'#{name}' is not an method"
+  end
+  def self.method_missing(name, *args)
+    raise "'#{name}' is not an entrypoint"
   end
 end
