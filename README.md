@@ -358,8 +358,6 @@ $ gem install dsl_maker
 * Add support for auto-generating documentation
 * Add default block that returns a Struct-of-Structs named after entrypoints
 * Add example of binary to execute a DSL
-* Add example of/link to validation and production of data structure
-   * 3-part DSL handling
 * DSL for DSL construction
 * Add "include" helper that loads another file and continues the execution
    * Should provide useful directory searching
@@ -376,10 +374,11 @@ Works on [all ruby versions since 1.9.3](https://github.com/robkinyon/ruby-dsl-m
 
 ## Note on Patches/Pull Requests
 
-  * Fork the project.
+  * Fork the project on GitHub.
   * Setup your development environment with:
       `gem install bundler; bundle install`
   * Make your feature addition or bug fix in a branch.
+    * I will only accept PRs from branches, never master.
   * Add tests for it. This is important so I don't break it in a future version
       unintentionally. Plus, I maintain 100% code coverage.
   * Commit.
