@@ -119,9 +119,6 @@ class DSL::Maker
           unless (args.empty? && !dsl_block)
             obj = type.new
             Docile.dsl_eval(obj, &dsl_block) if dsl_block
-
-            # I don't know why this code doesn't work, but it's why __apply().
-            #___set(as_attr, obj.instance_exec(*args, &defn_block))
             ___set(as_attr, obj.__apply(*args))
           end
           ___get(as_attr)
@@ -187,11 +184,6 @@ class DSL::Maker
   # 
   # @return      [Class]  The class that implements this level's DSL definition.
   def self.add_entrypoint(name, args={}, &defn_block)
-    # Without defn_block, there's no way to give back the result of the
-    # DSL parsing. So, raise an error if we don't get one.
-    # TODO: Provide a default block that returns the datastructure as a HoH.
-    raise "Block required for add_entrypoint" unless block_given?
-
     if self.respond_to?(name.to_sym)
       raise "'#{name.to_s}' is already an entrypoint"
     end
@@ -199,13 +191,18 @@ class DSL::Maker
     if __is_dsl(args)
       dsl_class = args
     else
+      # Without defn_block, there's no way to give back the result of the
+      # DSL parsing. So, raise an error if we don't get one.
+      # TODO: Provide a default block that returns the datastructure as a HoH.
+
+      raise "Block required for add_entrypoint" unless block_given?
       dsl_class = generate_dsl(args, &defn_block)
     end
 
     define_singleton_method(name.to_sym) do |*args, &dsl_block|
       obj = dsl_class.new
       Docile.dsl_eval(obj, &dsl_block) if dsl_block
-      rv = obj.instance_exec(*args, &defn_block)
+      rv = obj.__apply(*args)
       @accumulator.push(rv)
       return rv
     end

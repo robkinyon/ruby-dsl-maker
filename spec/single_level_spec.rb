@@ -108,12 +108,11 @@ describe 'A single-level DSL for pizza' do
         :bacon => DSL::Maker::Boolean,
         :pepperoni => DSL::Maker::Boolean,
         :sauce => String,
-      }) {}
-
-      # This is a wart - this block should be against toppings_dsl, not here.
-      add_entrypoint(:pizza, toppings_dsl) do
+      }) do
         $Pizza.new(cheese, pepperoni, bacon, sauce)
       end
+
+      add_entrypoint(:pizza, toppings_dsl)
     end
 
     pizza = dsl_class.parse_dsl("
@@ -139,12 +138,11 @@ describe 'A single-level DSL for pizza' do
         :bacon => DSL::Maker::Boolean,
         :pepperoni => DSL::Maker::Boolean,
         :sauce => String,
-      }) {}
-
-      # This is a wart - this block should be against toppings_dsl, not here.
-      add_entrypoint(:pizza, toppings_dsl) do
+      }) do
         $Pizza.new(cheese, pepperoni, bacon, sauce)
       end
+
+      add_entrypoint(:pizza, toppings_dsl)
     end
 
     pizza = dsl_class.execute_dsl do
