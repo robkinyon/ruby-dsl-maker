@@ -11,6 +11,12 @@ describe "DSL::Maker validation" do
     }.to raise_error('Block required for generate_dsl')
   end
 
+  it "requires a block for execute_dsl" do
+    expect {
+      Class.new(DSL::Maker).execute_dsl
+    }.to raise_error('Block required for execute_dsl')
+  end
+
   describe "for attributes" do
     it "requires a recognized type for attributes" do
       expect {

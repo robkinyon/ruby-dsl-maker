@@ -42,14 +42,7 @@ class DSL::Maker
   #
   # @return    [Object] Whatever is returned by the block defined in this class.
   def self.parse_dsl(dsl)
-    # add_entrypoint() will use @accumulator to handle multiple entrypoints.
-    # Reset it here so that we're only handling the values from this run.
-    @accumulator = []
-    eval dsl, self.get_binding
-    if @accumulator.length <= 1
-      return @accumulator[0]
-    end
-    return @accumulator
+    __run_dsl { eval dsl, self.get_binding }
   end
 
   # Execute the DSL provided in the block.
@@ -61,19 +54,9 @@ class DSL::Maker
   #
   # @return    [Object] Whatever is returned by &block
   def self.execute_dsl(&block)
-    @accumulator = []
-    instance_eval(&block)
-    if @accumulator.length <= 1
-      return @accumulator[0]
-    end
-    return @accumulator
-  end
+    raise 'Block required for execute_dsl' unless block_given?
 
-  # Returns the binding as needed by parse_dsl() and execute_dsl()
-  #
-  # @return [Binding] The binding of the invoking class.
-  def self.get_binding
-    binding
+    __run_dsl { instance_eval(&block) }
   end
 
   # FIXME: This may have to be changed when the elements can be altered because
@@ -110,24 +93,6 @@ class DSL::Maker
     return
   end
 
-  add_type(Integer) do |attr, *args|
-    ___set(attr, args[0].to_i) unless args.empty?
-    ___get(attr)
-  end
-  add_type(String) do |attr, *args|
-    ___set(attr, args[0].to_s) unless args.empty?
-    ___get(attr)
-  end
-  add_type(Boolean) do |attr, *args|
-    ___set(attr, Boolean.coerce(args[0])) unless args.empty?
-    # Ensure that the default nil also returns as false.
-    !!___get(attr)
-  end
-
-  $is_dsl = lambda do |proto|
-    proto.is_a?(Class) && proto.ancestors.include?(DSL::Maker::Base)
-  end
-
   # Add a single element of a DSL to a class representing a level in a DSL.
   #
   # Each of the types represents a coercion - a guarantee and check of the value
@@ -147,7 +112,7 @@ class DSL::Maker
   def self.build_dsl_element(klass, name, type)
     if @@types.has_key?(type)
       @@types[type].call(klass, name, type)
-    elsif $is_dsl.call(type)
+    elsif __is_dsl(type)
       as_attr = '@' + name.to_s
       klass.class_eval do
         define_method(name.to_sym) do |*args, &dsl_block|
@@ -231,7 +196,7 @@ class DSL::Maker
       raise "'#{name.to_s}' is already an entrypoint"
     end
 
-    if $is_dsl.call(args)
+    if __is_dsl(args)
       dsl_class = args
     else
       dsl_class = generate_dsl(args, &defn_block)
@@ -284,18 +249,60 @@ class DSL::Maker
     return
   end
 
-  # A helper method for handling defaults from args easily.
+  private
+
+  # Returns the binding as needed by parse_dsl() and execute_dsl()
   #
-  # @param method_name [String]  The name of the attribute being defaulted.
-  # @param args        [Array]   The arguments provided to the block.
-  # @param position    [Integer] The index in args to work with, default 0.
-  #
-  # @return nil
-  add_helper(:default) do |method_name, args, position=0|
-    method = method_name.to_sym
-    if args.length >= (position + 1) && !self.send(method)
-      self.send(method, args[position])
-    end
-    return
+  # @return [Binding] The binding of the invoking class.
+  def self.get_binding
+    binding
   end
+
+  def self.__run_dsl()
+    # add_entrypoint() will use @accumulator to handle multiple entrypoints.
+    # Reset it here so that we're only handling the values from this run.
+    @accumulator = []
+
+    yield
+
+    if @accumulator.length <= 1
+      return @accumulator[0]
+    end
+    return @accumulator
+  end
+
+  def self.__is_dsl(proto)
+    proto.is_a?(Class) && proto.ancestors.include?(DSL::Maker::Base)
+  end
+end
+
+# These are the default setups.
+
+DSL::Maker.add_type(Integer) do |attr, *args|
+  ___set(attr, args[0].to_i) unless args.empty?
+  ___get(attr)
+end
+DSL::Maker.add_type(String) do |attr, *args|
+  ___set(attr, args[0].to_s) unless args.empty?
+  ___get(attr)
+end
+DSL::Maker.add_type(DSL::Maker::Boolean) do |attr, *args|
+  ___set(attr, DSL::Maker::Boolean.coerce(args[0])) unless args.empty?
+  # Ensure that the default nil also returns as false.
+  !!___get(attr)
+end
+
+# A helper method for handling defaults from args easily.
+#
+# @param method_name [String]  The name of the attribute being defaulted.
+# @param args        [Array]   The arguments provided to the block.
+# @param position    [Integer] The index in args to work with, default 0.
+#
+# @return nil
+DSL::Maker.add_helper(:default) do |method_name, args, position=0|
+  method = method_name.to_sym
+  if args.length >= (position + 1) && !self.send(method)
+    self.send(method, args[position])
+  end
+  return
 end

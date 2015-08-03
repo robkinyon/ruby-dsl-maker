@@ -1,5 +1,9 @@
 Revision history for DSL::Maker (ordered by revision number).
 
+0.0.6 Aug ?? 2015
+   - Refactored several items into private methods
+   - Pulled the provided types and helpers out of the class definition
+
 0.0.5 Jul 30 2015
    - Added missing YaRDOC for new features in 0.0.4
    - Added add_coercion() to allow the user to define new coercions for use when
