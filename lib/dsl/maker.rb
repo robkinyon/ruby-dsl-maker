@@ -101,7 +101,8 @@ class DSL::Maker
   # Each of the types represents a coercion - a guarantee and check of the value
   # in that name. The standard type coercions are:
   #
-  #   * String  - whatever you give is returned.
+  #   * Any  - whatever you give is returned.
+  #   * String  - the string value of whatever you give is returned.
   #   * Integer - the integer value of whatever you give is returned.
   #   * Boolean - the truthiness of whatever you give is returned.
   #   * generate_dsl() - this represents a new level of the DSL.
@@ -149,9 +150,6 @@ class DSL::Maker
   def self.generate_dsl(args={}, &defn_block)
     raise 'Block required for generate_dsl' unless block_given?
 
-    # Inherit from the Boolean class to gain access to the useful methods
-    # TODO: Convert DSL::Maker::Boolean into a Role
-    # TODO: Create a DSL::Maker::Base class to inherit from
     dsl_class = Class.new(DSL::Maker::Base) do
       include DSL::Maker::Boolean
 

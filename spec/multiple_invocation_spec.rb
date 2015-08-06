@@ -7,7 +7,7 @@ describe "A DSL describing cars used with multiple invocations" do
   it "returns two items in the right order" do
     dsl_class = Class.new(DSL::Maker) do
       add_entrypoint(:car, {
-        :maker => String,
+        :maker => DSL::Maker::Any,
       }) do
         $Car.new(maker)
       end
