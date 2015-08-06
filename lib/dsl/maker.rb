@@ -13,6 +13,9 @@ class DSL::Maker
     alias :___get :instance_variable_get
   end
 
+  # Create the DSL::Maker::Any type identifier
+  Any = nil
+
   # This is a useful module that contains all the Boolean handling we need.
   module Boolean
     {
@@ -320,6 +323,10 @@ end
 
 # These are the default setups.
 
+DSL::Maker.add_type(DSL::Maker::Any) do |attr, *args|
+  ___set(attr, args[0]) unless args.empty?
+  ___get(attr)
+end
 DSL::Maker.add_type(Integer) do |attr, *args|
   ___set(attr, args[0].to_i) unless args.empty?
   ___get(attr)

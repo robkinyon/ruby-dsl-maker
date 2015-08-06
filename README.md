@@ -9,6 +9,83 @@
 [![Code Coverage](https://img.shields.io/codecov/c/github/robkinyon/ruby-dsl-maker.svg)](https://codecov.io/github/robkinyon/ruby-dsl-maker)
 [![Inline docs](http://inch-ci.org/github/robkinyon/ruby-dsl-maker.png)](http://inch-ci.org/github/robkinyon/ruby-dsl-maker)
 
+## TL;DR
+
+```ruby
+require 'dsl/maker'
+
+Car = Struct.new(:maker, :engine)
+Engine = Struct.new(:is_hemi)
+Truck = Struct.new(:maker, :engine, :towing)
+
+class Vehicle::DSL < DSL::Maker
+  dsl_engine = generate_dsl({
+    :hemi => Boolean,
+  }) do
+    Engine.new(hemi)
+  end
+
+  add_entrypoint(:car, {
+    :maker => String,
+    :engine => dsl_engine,
+  }) do |*args|
+    default(maker, args, 0)
+    Car.new(maker, engine)
+  end
+
+  add_entrypoint(:truck, {
+    :maker => String,
+    :towing => Integer,
+    :engine => dsl_engine,
+  }) do |*args|
+    default(maker, args, 0)
+    Truck.new(maker, engine, towing)
+  end
+
+  add_verification(:car) do |item|
+    return "Cars need engines" unless item.engine
+  end
+  add_verification(:truck) do |item|
+    return "Trucks need engines" unless item.engine
+    return "Trucks aren't wimps" unless item.towing > 1000
+  end
+end
+```
+
+Then, use it as so:
+
+```ruby
+#!/usr/bin/env ruby
+
+require ‘vehicle/dsl’
+
+filename = ARGV.shift || raise “No filename provided.”
+
+# This raises the error
+vehicles = Vehicle::DSL.parse_dsl(
+  IO.read(filename),
+)
+```
+
+with a file that could look like:
+
+```ruby
+car do
+  make 'Honda Civic'
+  engine {
+    hemi no
+  }
+end
+
+truck 'Ford F-150' do
+  engine {
+    hemi On
+  }
+end
+```
+
+## Rationale
+
 Writing single-level Ruby-like DSLs is really easy. Ruby practically builds them
 for you with a little meta-programming. [Docile](https://github.com/ms-ati/docile)
 makes it ridiculously easy and there are nearly a dozen other modules to do so.
@@ -327,6 +404,7 @@ were encountered.
 
 There are four pre-defined type coercions for use within `generate_dsl()`:
 
+  * Any - This takes whatever you give it and returns it back.
   * String - This takes whatever you give it and returns the string within it.
   * Integer - This takes whatever you give it and returns the integer within it.
   * Boolean - This takes whatever you give it and returns the truthiness of it.

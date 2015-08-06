@@ -1,16 +1,20 @@
 Revision history for DSL::Maker (ordered by revision number).
 
+0.0.7 Aug 06 2015
+   - Added the 'Any' type coercion.
+   - Added a TL;DR section at the top of the README.
+
 0.0.6 Aug 03 2015
-   - Added add_verification(name?) to allow for runtime verifications
+   - Added add_verification(name) to allow for runtime verifications
    - Don't require a dummy block when passing a DSL class to add_entrypoint.
    - Refactored several items into private methods
    - Pulled the provided types and helpers out of the class definition
 
 0.0.5 Jul 30 2015
    - Added missing YaRDOC for new features in 0.0.4
-   - Added add_coercion() to allow the user to define new coercions for use when
+   - Added add_type() to allow the user to define new type coercions for use when
      creating their DSL.
-   - Eat our own dogfood vis-a-vis helpers and coercions.
+   - Eat our own dogfood vis-a-vis helpers and type coercions.
 
 0.0.4 Jul 29 2015
    - Added add_helper() to allow the user to define new helper methods for use
