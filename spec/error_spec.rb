@@ -11,10 +11,44 @@ describe "DSL::Maker validation" do
     }.to raise_error('Block required for generate_dsl')
   end
 
-  it "requires a block for execute_dsl" do
-    expect {
-      Class.new(DSL::Maker).execute_dsl
-    }.to raise_error('Block required for execute_dsl')
+  describe "for :parse_dsl" do
+    it "requires an entrypoint" do
+      expect {
+        Class.new(DSL::Maker).parse_dsl("")
+      }.to raise_error('Must call add_entrypoint before parse_dsl')
+    end
+
+    it "requires a string (check nil)" do
+      expect {
+        kls = Class.new(DSL::Maker)
+        kls.add_entrypoint(:x) {}
+        kls.parse_dsl
+      }.to raise_error('String required for parse_dsl')
+    end
+
+    it "requires a string (check number)" do
+      expect {
+        kls = Class.new(DSL::Maker)
+        kls.add_entrypoint(:x) {}
+        kls.parse_dsl(1)
+      }.to raise_error('String required for parse_dsl')
+    end
+  end
+
+  describe "for :execute_dsl" do
+    it "requires an entrypoint" do
+      expect {
+        Class.new(DSL::Maker).execute_dsl {}
+      }.to raise_error('Must call add_entrypoint before execute_dsl')
+    end
+
+    it "requires a block" do
+      expect {
+        kls = Class.new(DSL::Maker)
+        kls.add_entrypoint(:x) {}
+        kls.execute_dsl
+      }.to raise_error('Block required for execute_dsl')
+    end
   end
 
   describe "for attributes" do

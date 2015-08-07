@@ -2,18 +2,20 @@
 
 describe "A DSL with argument handling describing fruit" do
   describe "with one argument in add_entrypoint" do
-    dsl_class = Class.new(DSL::Maker) do
-      add_entrypoint(:fruit, {
-        :name => String,
-      }) do |*args|
-        default(:name, args, 0)
-        Structs::Fruit.new(name, nil)
+    let(:dsl_class) {
+      Class.new(DSL::Maker) do
+        add_entrypoint(:fruit, {
+          :name => String,
+        }) do |*args|
+          default(:name, args, 0)
+          Structs::Fruit.new(name, nil)
+        end
       end
-    end
+    }
 
     it "can handle nil" do
       fruit = dsl_class.parse_dsl("
-        fruit
+        fruit {}
       ")
       expect(fruit).to be_instance_of(Structs::Fruit)
       expect(fruit.name).to be_nil
@@ -48,21 +50,23 @@ describe "A DSL with argument handling describing fruit" do
   end
 
   describe "with two arguments in add_entrypoint" do
-    dsl_class = Class.new(DSL::Maker) do
-      add_entrypoint(:fruit, {
-        :name => String,
-        :color => String,
-      }) do |*args|
-        default('name', args)
-        default('color', args, 1)
+    let(:dsl_class) {
+      Class.new(DSL::Maker) do
+        add_entrypoint(:fruit, {
+          :name => String,
+          :color => String,
+        }) do |*args|
+          default('name', args)
+          default('color', args, 1)
 
-        Structs::Fruit.new(name, color)
+          Structs::Fruit.new(name, color)
+        end
       end
-    end
+    }
 
     it "can handle no arguments" do
       fruit = dsl_class.parse_dsl("
-        fruit
+        fruit {}
       ")
       expect(fruit).to be_instance_of(Structs::Fruit)
       expect(fruit.name).to be_nil
@@ -102,20 +106,22 @@ describe "A DSL with argument handling describing fruit" do
   end
 
   describe "with one argument in generate_dsl" do
-    dsl_class = Class.new(DSL::Maker) do
-      add_entrypoint(:fruit, {
-        :name => String,
-        :color => generate_dsl({
+    let (:dsl_class) {
+      Class.new(DSL::Maker) do
+        add_entrypoint(:fruit, {
           :name => String,
-        }) { |*args|
+          :color => generate_dsl({
+            :name => String,
+          }) { |*args|
+            default('name', args, 0)
+            Structs::Color.new(name)
+          }
+        }) do |*args|
           default('name', args, 0)
-          Structs::Color.new(name)
-        }
-      }) do |*args|
-        default('name', args, 0)
-        Structs::Fruit.new(name, color)
+          Structs::Fruit.new(name, color)
+        end
       end
-    end
+    }
 
     it "can handle arguments for fruit, but attribute for color" do
       fruit = dsl_class.parse_dsl("

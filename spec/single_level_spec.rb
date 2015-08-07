@@ -21,10 +21,12 @@ describe 'A single-level DSL for pizza' do
 
   it 'makes a blank pizza' do
     dsl_class = Class.new(DSL::Maker) do
-      add_entrypoint(:pizza) { Structs::Pizza.new }
+      add_entrypoint(:pizza) {
+        Structs::Pizza.new
+      }
     end
 
-    pizza = dsl_class.parse_dsl('pizza')
+    pizza = dsl_class.parse_dsl('pizza {}')
     verify_pizza(pizza)
   end
 

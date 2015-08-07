@@ -11,6 +11,10 @@ class DSL::Maker
 
     # 21 character method names are obscene. Make it easier to read.
     alias :___get :instance_variable_get
+
+    def get_binding
+      binding
+    end
   end
 
   # Create the DSL::Maker::Any type identifier, equivalent to Object.
@@ -44,8 +48,12 @@ class DSL::Maker
   # @param dsl [String] The DSL to be parsed by this class.
   #
   # @return    [Object] Whatever is returned by the block defined in this class.
-  def self.parse_dsl(dsl)
-    __run_dsl { eval dsl, self.get_binding }
+  def self.parse_dsl(dsl=nil)
+    raise 'Must call add_entrypoint before parse_dsl' unless @klass
+    raise 'String required for parse_dsl' unless dsl.instance_of? String
+
+    instance = @klass.new
+    run_dsl(instance) { eval dsl, instance.get_binding }
   end
 
   # Execute the DSL provided in the block.
@@ -57,9 +65,11 @@ class DSL::Maker
   #
   # @return    [Object] Whatever is returned by &block
   def self.execute_dsl(&block)
+    raise 'Must call add_entrypoint before execute_dsl' unless @klass
     raise 'Block required for execute_dsl' unless block_given?
 
-    __run_dsl { instance_eval(&block) }
+    instance = @klass.new
+    run_dsl(instance) { instance.instance_eval(&block) }
   end
 
   # This adds a type coercion that's used when creating the DSL.
@@ -110,6 +120,10 @@ class DSL::Maker
     dsl_class = Class.new(DSL::Maker::Base) do
       include DSL::Maker::Boolean
 
+      class << self
+        attr_accessor :parent_class
+      end
+
       define_method(:__apply) do |*args|
         instance_exec(*args, &defn_block)
       end
@@ -141,11 +155,11 @@ class DSL::Maker
   def self.add_entrypoint(name, args={}, &defn_block)
     symname = name.to_sym
 
-    if self.respond_to?(symname)
+    if is_entrypoint(symname)
       raise "'#{name.to_s}' is already an entrypoint"
     end
 
-    if __is_dsl(args)
+    if is_dsl(args)
       dsl_class = args
     else
       # Without defn_block, there's no way to give back the result of the
@@ -155,22 +169,24 @@ class DSL::Maker
       raise "Block required for add_entrypoint" unless block_given?
       dsl_class = generate_dsl(args, &defn_block)
     end
+    
+    if @klass
+      build_dsl_element(@klass, symname, dsl_class)
+    else
+      # We shouldn't need the blank block here.
+      @klass = generate_dsl({
+        symname => dsl_class
+      }) {}
 
-    define_singleton_method(symname) do |*args, &dsl_block|
-      obj = dsl_class.new
-      Docile.dsl_eval(obj, &dsl_block) if dsl_block
-      rv = obj.__apply(*args)
-
-      if @verifications && @verifications.has_key?(symname)
-        @verifications[symname].each do |verify|
-          failure = verify.call(rv)
-          raise failure if failure
-        end
-      end
-
-      @accumulator.push(rv)
-      return rv
+      @klass.parent_class = self
     end
+
+#      if @verifications && @verifications.has_key?(symname)
+#        @verifications[symname].each do |verify|
+#          failure = verify.call(rv)
+#          raise failure if failure
+#        end
+#      end
 
     @entrypoints ||= {}
     return @entrypoints[symname] = dsl_class
@@ -182,7 +198,7 @@ class DSL::Maker
   # 
   # @return      [Class]  The class that implements this name's DSL definition.
   def self.entrypoint(name)
-    unless __is_entrypoint(name)
+    unless is_entrypoint(name)
       raise "'#{name.to_s}' is not an entrypoint"
     end
 
@@ -226,7 +242,7 @@ class DSL::Maker
   # @return nil
   def self.add_verification(name, &block)
     raise "Block required for add_verification" unless block_given?
-    raise "'#{name.to_s}' is not an entrypoint for a verification" unless __is_entrypoint(name)
+    raise "'#{name.to_s}' is not an entrypoint for a verification" unless is_entrypoint(name)
 
     @verifications ||= {}
     @verifications[name.to_sym] ||= []
@@ -243,13 +259,6 @@ class DSL::Maker
   end
 
   private
-
-  # Returns the binding as needed by parse_dsl() and execute_dsl()
-  #
-  # @return [Binding] The binding of the invoking class.
-  def self.get_binding
-    binding
-  end
 
   # This is deliberately global to the hierarchy in order for DSL::Maker to add
   # the generic types. While this has the potential to cause userspace collisions,
@@ -278,14 +287,22 @@ class DSL::Maker
   def self.build_dsl_element(klass, name, type)
     if @@types.has_key?(type)
       @@types[type].call(klass, name, type)
-    elsif __is_dsl(type)
+    elsif is_dsl(type)
       as_attr = '@' + name.to_s
       klass.class_eval do
         define_method(name.to_sym) do |*args, &dsl_block|
           if (!args.empty? || dsl_block)
             obj = type.new
             Docile.dsl_eval(obj, &dsl_block) if dsl_block
-            ___set(as_attr, obj.__apply(*args))
+            rv = obj.__apply(*args)
+
+            # This is the one place where we pull out the entrypoint results and
+            # put them into the control class.
+            if klass.parent_class
+              klass.parent_class.instance_variable_get(:@accumulator).push(rv)
+            end
+
+            ___set(as_attr, rv)
           end
           ___get(as_attr)
         end
@@ -297,7 +314,7 @@ class DSL::Maker
     return
   end
 
-  def self.__run_dsl()
+  def self.run_dsl(instance)
     # add_entrypoint() will use @accumulator to handle multiple entrypoints.
     # Reset it here so that we're only handling the values from this run.
     @accumulator = []
@@ -310,16 +327,17 @@ class DSL::Maker
     return @accumulator
   end
 
-  def self.__is_dsl(proto)
+  def self.is_dsl(proto)
     proto.is_a?(Class) && proto.ancestors.include?(DSL::Maker::Base)
   end
 
-  def self.__is_entrypoint(name)
-    respond_to?(name.to_sym)
+  def self.is_entrypoint(name)
+    @entrypoints && @entrypoints.has_key?(name.to_sym)
+    #@klass && @klass.new.respond_to?(name.to_sym)
   end
 end
 
-# These are the default setups.
+# These are the default setups
 
 DSL::Maker.add_type(DSL::Maker::Any) do |attr, *args|
   ___set(attr, args[0]) unless args.empty?
