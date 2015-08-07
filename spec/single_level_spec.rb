@@ -19,6 +19,30 @@ describe 'A single-level DSL for pizza' do
     end
   end
 
+  describe 'handles an empty DSL' do
+    it 'with :parse_dsl' do
+      dsl_class = Class.new(DSL::Maker) do
+        add_entrypoint(:pizza) {
+          Structs::Pizza.new
+        }
+      end
+
+      pizza = dsl_class.parse_dsl('')
+      expect(pizza).to be(nil)
+    end
+
+    it 'with :execute_dsl' do
+      dsl_class = Class.new(DSL::Maker) do
+        add_entrypoint(:pizza) {
+          Structs::Pizza.new
+        }
+      end
+
+      pizza = dsl_class.execute_dsl {}
+      expect(pizza).to be(nil)
+    end
+  end
+
   it 'makes a blank pizza' do
     dsl_class = Class.new(DSL::Maker) do
       add_entrypoint(:pizza) {

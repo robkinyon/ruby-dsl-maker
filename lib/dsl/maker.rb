@@ -2,6 +2,13 @@ require 'dsl/maker/version'
 
 require 'docile'
 
+# Children of DSL::Maker are the "control class". All of the classes that inherit
+# from DSL::Maker::Base are "dsl classes" - classes that are passed to Docile and
+# which represent levels of the DSL. In order for :parse_dsl/:execute_dsl to
+# return back the accumulated values in the order provided, we need to "pierce the
+# veil" (so to speak) between the control and dsl classes. That's done using the
+# parent_class class attribute in the dsl classes.
+
 # This is the base class we provide.
 class DSL::Maker
   # This is the base class for all DSL-parsing classes.
@@ -52,8 +59,7 @@ class DSL::Maker
     raise 'Must call add_entrypoint before parse_dsl' unless @klass
     raise 'String required for parse_dsl' unless dsl.instance_of? String
 
-    instance = @klass.new
-    run_dsl(instance) { eval dsl, instance.get_binding }
+    run_dsl() { eval dsl, @klass.new.get_binding }
   end
 
   # Execute the DSL provided in the block.
@@ -68,8 +74,7 @@ class DSL::Maker
     raise 'Must call add_entrypoint before execute_dsl' unless @klass
     raise 'Block required for execute_dsl' unless block_given?
 
-    instance = @klass.new
-    run_dsl(instance) { instance.instance_eval(&block) }
+    run_dsl() { @klass.new.instance_eval(&block) }
   end
 
   # This adds a type coercion that's used when creating the DSL.
@@ -192,6 +197,9 @@ class DSL::Maker
       build_dsl_element(@klass, symname, dsl_class)
     else
       # FIXME: We shouldn't need the blank block here ...
+      # This blank block is representative of the implicit (and missing) outermost
+      # block around the DSL that we are not putting into place in :parse_dsl or
+      # :execute_dsl.
       @klass = generate_dsl({
         symname => dsl_class
       }) {}
@@ -326,6 +334,8 @@ class DSL::Maker
                 end
               end
 
+              # Use the full instance_variable_get() in order to avoid having to
+              # create accessors that could be misused outside this class.
               klass.parent_class.instance_variable_get(:@accumulator).push(rv)
             end
 
@@ -341,9 +351,10 @@ class DSL::Maker
     return
   end
 
-  def self.run_dsl(instance)
-    # add_entrypoint() will use @accumulator to handle multiple entrypoints.
-    # Reset it here so that we're only handling the values from this run.
+  def self.run_dsl()
+    # build_dsl_element() will use @accumulator to handle multiple entrypoints if
+    # the class in question is a root DSL class. Reset it here so that we're only
+    # handling the values from this run.
     @accumulator = []
 
     yield
