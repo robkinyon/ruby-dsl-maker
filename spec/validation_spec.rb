@@ -26,4 +26,30 @@ describe "Validations" do
       dsl_class.parse_dsl("pizza { sauce :extra }")
     }.to_not raise_error
   end
+
+  it "validates at the dsl_class level" do
+    dsl_class = Class.new(DSL::Maker) do
+      toppings_dsl = generate_dsl({
+        :cheese => DSL::Maker::Boolean,
+        :bacon => DSL::Maker::Boolean,
+        :pepperoni => DSL::Maker::Boolean,
+        :sauce => String,
+      }) do
+        Structs::Pizza.new(cheese, pepperoni, bacon, sauce)
+      end
+      toppings_dsl.add_verification do |item|
+        return "Pizza must have sauce" unless item.sauce
+      end
+
+      add_entrypoint(:pizza, toppings_dsl)
+    end
+
+    expect {
+      dsl_class.parse_dsl("pizza {}")
+    }.to raise_error("Pizza must have sauce")
+
+    expect {
+      dsl_class.parse_dsl("pizza { sauce :extra }")
+    }.to_not raise_error
+  end
 end

@@ -22,6 +22,24 @@ class DSL::Maker
     def get_binding
       binding
     end
+
+    define_singleton_method(:add_verification) do |&block|
+      # FIXME: This throws regardless. Is this because of the difference between
+      # proc and block?
+      #raise "Block required for add_verification" unless block_given?
+
+      @verifications ||= []
+
+      # This craziness converts the block provided into a proc that can be called
+      # in add_entrypoint(). Taken from http://stackoverflow.com/a/2946734/1732954
+      # Note: self is not preserved. This should be okay because the verification
+      # should be idempotent relative to the value provided (side-effect-free).
+      obj = Object.new
+      obj.define_singleton_method(:_, &block)
+      @verifications.push(obj.method(:_).to_proc)
+
+      return
+    end
   end
 
   # Create the DSL::Maker::Any type identifier, equivalent to Object.
@@ -132,24 +150,6 @@ class DSL::Maker
       define_method(:__apply) do |*args|
         instance_exec(*args, &defn_block)
       end
-
-      #define_singleton_method(:add_verification) do |name, &block|
-      #  raise "Block required for add_verification" unless block_given?
-      #  #raise "'#{name.to_s}' is not an entrypoint for a verification" unless is_entrypoint(name)
-
-      #  @verifications ||= {}
-      #  @verifications[name.to_sym] ||= []
-
-        # This craziness converts the block provided into a proc that can be called
-        # in add_entrypoint(). Taken from http://stackoverflow.com/a/2946734/1732954
-        # Note: self is not preserved. This should be okay because the verification
-        # should only care about the value provided.
-      #  obj = Object.new
-      #  obj.define_singleton_method(:_, &block)
-      #  @verifications[name.to_sym].push(obj.method(:_).to_proc)
-
-      #  return
-      #end
     end
 
     args.each do |name, type|
@@ -253,36 +253,23 @@ class DSL::Maker
   # execution. If the verification returns a true value (of any kind), then that
   # will be raised as a runtime exception.
   #
-  # Note: These verifications are specific to the DSL you add them to.
-  # Note: Verifications are called in the order you specify them.
+  # You can also call add_verification on the return values from generate_dsl() or
+  # add_entrypoint(). In those cases, omit the :name because you have already
+  # chosen the DSL layer you're adding the verification to.
+  #
+  # @note These verifications are specific to the DSL you add them to.
+  #
+  # @note Verifications are called in the order you specify them.
   #
   # @param name   [String] the name of the entrypoint to add a verification to
   # @param &block [Block]  The function to be executed when verifications execute
   # 
   # @return nil
-  #def self.Xadd_verification(name, &block)
-  #  raise "Block required for add_verification" unless block_given?
-  #  raise "'#{name.to_s}' is not an entrypoint for a verification" unless is_entrypoint(name)
-#
-#    @klass.add_verification(name, &block)
-#  end
-
   def self.add_verification(name, &block)
     raise "Block required for add_verification" unless block_given?
     raise "'#{name.to_s}' is not an entrypoint for a verification" unless is_entrypoint(name)
 
-    @verifications ||= {}
-    @verifications[name.to_sym] ||= []
-
-    # This craziness converts the block provided into a proc that can be called
-    # in add_entrypoint(). Taken from http://stackoverflow.com/a/2946734/1732954
-    # Note: self is not preserved. This should be okay because the verification
-    # should only care about the value provided.
-    obj = Object.new
-    obj.define_singleton_method(:_, &block)
-    @verifications[name.to_sym].push(obj.method(:_).to_proc)
-
-    return
+    @entrypoints[name.to_sym].add_verification(&block)
   end
 
   private
@@ -323,17 +310,16 @@ class DSL::Maker
             Docile.dsl_eval(obj, &dsl_block) if dsl_block
             rv = obj.__apply(*args)
 
+            if v = type.instance_variable_get(:@verifications)
+              v.each do |verify|
+                failure = verify.call(rv)
+                raise failure if failure
+              end
+            end
+
             # This is the one place where we pull out the entrypoint results and
             # put them into the control class.
             if klass.parent_class
-              v = klass.parent_class.instance_variable_get(:@verifications)
-              if v && v.has_key?(name.to_sym)
-                v[name.to_sym].each do |verify|
-                  failure = verify.call(rv)
-                  raise failure if failure
-                end
-              end
-
               # Use the full instance_variable_get() in order to avoid having to
               # create accessors that could be misused outside this class.
               klass.parent_class.instance_variable_get(:@accumulator).push(rv)
