@@ -121,12 +121,30 @@ class DSL::Maker
       include DSL::Maker::Boolean
 
       class << self
-        attr_accessor :parent_class
+        attr_accessor :parent_class, :verifications
       end
 
       define_method(:__apply) do |*args|
         instance_exec(*args, &defn_block)
       end
+
+      #define_singleton_method(:add_verification) do |name, &block|
+      #  raise "Block required for add_verification" unless block_given?
+      #  #raise "'#{name.to_s}' is not an entrypoint for a verification" unless is_entrypoint(name)
+
+      #  @verifications ||= {}
+      #  @verifications[name.to_sym] ||= []
+
+        # This craziness converts the block provided into a proc that can be called
+        # in add_entrypoint(). Taken from http://stackoverflow.com/a/2946734/1732954
+        # Note: self is not preserved. This should be okay because the verification
+        # should only care about the value provided.
+      #  obj = Object.new
+      #  obj.define_singleton_method(:_, &block)
+      #  @verifications[name.to_sym].push(obj.method(:_).to_proc)
+
+      #  return
+      #end
     end
 
     args.each do |name, type|
@@ -173,20 +191,14 @@ class DSL::Maker
     if @klass
       build_dsl_element(@klass, symname, dsl_class)
     else
-      # We shouldn't need the blank block here.
+      # FIXME: We shouldn't need the blank block here ...
       @klass = generate_dsl({
         symname => dsl_class
       }) {}
 
+      # This marks @klass as the root DSL class.
       @klass.parent_class = self
     end
-
-#      if @verifications && @verifications.has_key?(symname)
-#        @verifications[symname].each do |verify|
-#          failure = verify.call(rv)
-#          raise failure if failure
-#        end
-#      end
 
     @entrypoints ||= {}
     return @entrypoints[symname] = dsl_class
@@ -240,6 +252,13 @@ class DSL::Maker
   # @param &block [Block]  The function to be executed when verifications execute
   # 
   # @return nil
+  #def self.Xadd_verification(name, &block)
+  #  raise "Block required for add_verification" unless block_given?
+  #  raise "'#{name.to_s}' is not an entrypoint for a verification" unless is_entrypoint(name)
+#
+#    @klass.add_verification(name, &block)
+#  end
+
   def self.add_verification(name, &block)
     raise "Block required for add_verification" unless block_given?
     raise "'#{name.to_s}' is not an entrypoint for a verification" unless is_entrypoint(name)
@@ -299,6 +318,14 @@ class DSL::Maker
             # This is the one place where we pull out the entrypoint results and
             # put them into the control class.
             if klass.parent_class
+              v = klass.parent_class.instance_variable_get(:@verifications)
+              if v && v.has_key?(name.to_sym)
+                v[name.to_sym].each do |verify|
+                  failure = verify.call(rv)
+                  raise failure if failure
+                end
+              end
+
               klass.parent_class.instance_variable_get(:@accumulator).push(rv)
             end
 
