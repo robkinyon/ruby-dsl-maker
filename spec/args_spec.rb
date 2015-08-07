@@ -1,16 +1,13 @@
 # This will use a DSL that defines fruit
 
 describe "A DSL with argument handling describing fruit" do
-  $Color = Struct.new(:name)
-  $Fruit = Struct.new(:name, :color)
-
   describe "with one argument in add_entrypoint" do
     dsl_class = Class.new(DSL::Maker) do
       add_entrypoint(:fruit, {
         :name => String,
       }) do |*args|
         default(:name, args, 0)
-        $Fruit.new(name, nil)
+        Structs::Fruit.new(name, nil)
       end
     end
 
@@ -18,7 +15,7 @@ describe "A DSL with argument handling describing fruit" do
       fruit = dsl_class.parse_dsl("
         fruit
       ")
-      expect(fruit).to be_instance_of($Fruit)
+      expect(fruit).to be_instance_of(Structs::Fruit)
       expect(fruit.name).to be_nil
     end
 
@@ -26,7 +23,7 @@ describe "A DSL with argument handling describing fruit" do
       fruit = dsl_class.parse_dsl("
         fruit { name 'banana' }
       ")
-      expect(fruit).to be_instance_of($Fruit)
+      expect(fruit).to be_instance_of(Structs::Fruit)
       expect(fruit.name).to eq('banana')
     end
 
@@ -34,7 +31,7 @@ describe "A DSL with argument handling describing fruit" do
       fruit = dsl_class.parse_dsl("
         fruit 'banana'
       ")
-      expect(fruit).to be_instance_of($Fruit)
+      expect(fruit).to be_instance_of(Structs::Fruit)
       expect(fruit.name).to eq('banana')
     end
 
@@ -45,7 +42,7 @@ describe "A DSL with argument handling describing fruit" do
           name 'banana'
         end
       ")
-      expect(fruit).to be_instance_of($Fruit)
+      expect(fruit).to be_instance_of(Structs::Fruit)
       expect(fruit.name).to eq('banana')
     end
   end
@@ -59,7 +56,7 @@ describe "A DSL with argument handling describing fruit" do
         default('name', args)
         default('color', args, 1)
 
-        $Fruit.new(name, color)
+        Structs::Fruit.new(name, color)
       end
     end
 
@@ -67,7 +64,7 @@ describe "A DSL with argument handling describing fruit" do
       fruit = dsl_class.parse_dsl("
         fruit
       ")
-      expect(fruit).to be_instance_of($Fruit)
+      expect(fruit).to be_instance_of(Structs::Fruit)
       expect(fruit.name).to be_nil
       expect(fruit.color).to be_nil
     end
@@ -79,7 +76,7 @@ describe "A DSL with argument handling describing fruit" do
           color 'yellow'
         }
       ")
-      expect(fruit).to be_instance_of($Fruit)
+      expect(fruit).to be_instance_of(Structs::Fruit)
       expect(fruit.name).to eq('banana')
       expect(fruit.color).to eq('yellow')
 
@@ -89,7 +86,7 @@ describe "A DSL with argument handling describing fruit" do
           color 'green'
         end
       ")
-      expect(fruit).to be_instance_of($Fruit)
+      expect(fruit).to be_instance_of(Structs::Fruit)
       expect(fruit.name).to eq('plantain')
       expect(fruit.color).to eq('green')
     end
@@ -98,7 +95,7 @@ describe "A DSL with argument handling describing fruit" do
       fruit = dsl_class.parse_dsl("
         fruit 'banana', 'yellow'
       ")
-      expect(fruit).to be_instance_of($Fruit)
+      expect(fruit).to be_instance_of(Structs::Fruit)
       expect(fruit.name).to eq('banana')
       expect(fruit.color).to eq('yellow')
     end
@@ -112,11 +109,11 @@ describe "A DSL with argument handling describing fruit" do
           :name => String,
         }) { |*args|
           default('name', args, 0)
-          $Color.new(name)
+          Structs::Color.new(name)
         }
       }) do |*args|
         default('name', args, 0)
-        $Fruit.new(name, color)
+        Structs::Fruit.new(name, color)
       end
     end
 
@@ -128,9 +125,9 @@ describe "A DSL with argument handling describing fruit" do
           }
         end
       ")
-      expect(fruit).to be_instance_of($Fruit)
+      expect(fruit).to be_instance_of(Structs::Fruit)
       expect(fruit.name).to eq('banana')
-      expect(fruit.color).to be_instance_of($Color)
+      expect(fruit.color).to be_instance_of(Structs::Color)
       expect(fruit.color.name).to eq('yellow')
     end
 
@@ -140,9 +137,9 @@ describe "A DSL with argument handling describing fruit" do
           color 'yellow'
         end
       ")
-      expect(fruit).to be_instance_of($Fruit)
+      expect(fruit).to be_instance_of(Structs::Fruit)
       expect(fruit.name).to eq('banana')
-      expect(fruit.color).to be_instance_of($Color)
+      expect(fruit.color).to be_instance_of(Structs::Color)
       expect(fruit.color.name).to eq('yellow')
     end
 
@@ -154,9 +151,9 @@ describe "A DSL with argument handling describing fruit" do
           end
         end
       ")
-      expect(fruit).to be_instance_of($Fruit)
+      expect(fruit).to be_instance_of(Structs::Fruit)
       expect(fruit.name).to eq('banana')
-      expect(fruit.color).to be_instance_of($Color)
+      expect(fruit.color).to be_instance_of(Structs::Color)
       expect(fruit.color.name).to eq('green')
     end
   end

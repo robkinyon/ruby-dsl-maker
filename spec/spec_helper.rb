@@ -29,3 +29,19 @@ unless on_1_8?
 end
 
 require 'dsl/maker'
+
+module Structs
+  Car = Struct.new(:maker, :wheel)
+  Truck = Struct.new(:maker, :wheel)
+  Wheel = Struct.new(:maker, :size)
+
+  Person = Struct.new(:name, :child)
+  OtherPerson = Struct.new(:name, :mother, :father)
+
+  $toppings = [:cheese, :pepperoni, :bacon, :sauce]
+  Pizza = Struct.new(*$toppings)
+
+  Color = Struct.new(:name)
+  Fruit = Struct.new(:name, :color)
+end
+

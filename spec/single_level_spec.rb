@@ -11,11 +11,9 @@
 # 1. Because we're creating classes on the fly, we must fully-qualify the Boolean
 # class name. If we created real classes, the context would be provided for us.
 describe 'A single-level DSL for pizza' do
-  $toppings = [:cheese, :pepperoni, :bacon, :sauce]
-  $Pizza = Struct.new(*$toppings)
-
+  # This uses $toppings defined in spec/spec_helper.rb
   def verify_pizza(pizza, values={})
-    expect(pizza).to be_instance_of($Pizza)
+    expect(pizza).to be_instance_of(Structs::Pizza)
     $toppings.each do |topping|
       expect(pizza.send(topping)).to eq(values[topping])
     end
@@ -23,7 +21,7 @@ describe 'A single-level DSL for pizza' do
 
   it 'makes a blank pizza' do
     dsl_class = Class.new(DSL::Maker) do
-      add_entrypoint(:pizza) { $Pizza.new }
+      add_entrypoint(:pizza) { Structs::Pizza.new }
     end
 
     pizza = dsl_class.parse_dsl('pizza')
@@ -36,7 +34,7 @@ describe 'A single-level DSL for pizza' do
       add_entrypoint(:pizza, {
         :cheese => DSL::Maker::Boolean,
       }) do
-        $Pizza.new(cheese, nil, nil, nil)
+        Structs::Pizza.new(cheese, nil, nil, nil)
       end
     end
 
@@ -84,7 +82,7 @@ describe 'A single-level DSL for pizza' do
       add_entrypoint(:pizza, {
         :sauce => String,
       }) do
-        $Pizza.new(nil, nil, nil, sauce)
+        Structs::Pizza.new(nil, nil, nil, sauce)
       end
     end
 
@@ -109,7 +107,7 @@ describe 'A single-level DSL for pizza' do
         :pepperoni => DSL::Maker::Boolean,
         :sauce => String,
       }) do
-        $Pizza.new(cheese, pepperoni, bacon, sauce)
+        Structs::Pizza.new(cheese, pepperoni, bacon, sauce)
       end
 
       add_entrypoint(:pizza, toppings_dsl)
@@ -139,7 +137,7 @@ describe 'A single-level DSL for pizza' do
         :pepperoni => DSL::Maker::Boolean,
         :sauce => String,
       }) do
-        $Pizza.new(cheese, pepperoni, bacon, sauce)
+        Structs::Pizza.new(cheese, pepperoni, bacon, sauce)
       end
 
       add_entrypoint(:pizza, toppings_dsl)

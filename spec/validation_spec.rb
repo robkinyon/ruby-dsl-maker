@@ -9,7 +9,7 @@ describe "Validations" do
         :pepperoni => DSL::Maker::Boolean,
         :sauce => String,
       }) do
-        $Pizza.new(cheese, pepperoni, bacon, sauce)
+        Structs::Pizza.new(cheese, pepperoni, bacon, sauce)
       end
 
       add_entrypoint(:pizza, toppings_dsl)

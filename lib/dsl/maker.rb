@@ -13,8 +13,8 @@ class DSL::Maker
     alias :___get :instance_variable_get
   end
 
-  # Create the DSL::Maker::Any type identifier
-  Any = nil
+  # Create the DSL::Maker::Any type identifier, equivalent to Object.
+  Any = Object
 
   # This is a useful module that contains all the Boolean handling we need.
   module Boolean
@@ -68,7 +68,7 @@ class DSL::Maker
 
   # This adds a type coercion that's used when creating the DSL.
   #
-  # Note: These type coercions are global to all DSLs.
+  # @note These type coercions are global to all DSLs.
   #
   # @param type   [Object] the name of the helper
   # @param &block [Block]  The function to be executed when the coercion is exercised.
@@ -113,6 +113,7 @@ class DSL::Maker
   #                       This is the type coercion spoken above.
   #
   # @return   nil
+  #XXX Make this private
   def self.build_dsl_element(klass, name, type)
     if @@types.has_key?(type)
       @@types[type].call(klass, name, type)
@@ -120,7 +121,7 @@ class DSL::Maker
       as_attr = '@' + name.to_s
       klass.class_eval do
         define_method(name.to_sym) do |*args, &dsl_block|
-          unless (args.empty? && !dsl_block)
+          if (!args.empty? || dsl_block)
             obj = type.new
             Docile.dsl_eval(obj, &dsl_block) if dsl_block
             ___set(as_attr, obj.__apply(*args))
@@ -153,9 +154,6 @@ class DSL::Maker
     dsl_class = Class.new(DSL::Maker::Base) do
       include DSL::Maker::Boolean
 
-      # This instance method exists because we cannot seem to inline its work
-      # where we call it. Could it be a problem of incorrect binding?
-      # It has to be defined here because it needs access to &defn_block
       define_method(:__apply) do |*args|
         instance_exec(*args, &defn_block)
       end

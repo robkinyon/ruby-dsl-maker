@@ -1,5 +1,8 @@
 Revision history for DSL::Maker (ordered by revision number).
 
+0.0.8 Aug 0? 2015
+   - Make sure to provide a unique value for each type name.
+
 0.0.7 Aug 06 2015
    - Added the 'Any' type coercion.
    - Added a TL;DR section at the top of the README.

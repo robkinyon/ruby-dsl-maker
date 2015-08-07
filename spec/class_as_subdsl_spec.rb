@@ -2,9 +2,6 @@
 # does the right thing.
 
 describe "Passing a class into generate_dsl" do
-  $Car = Struct.new(:maker, :wheel)
-  $Wheel = Struct.new(:maker, :size)
-
   it "can do it" do
     wheel_dsl = Class.new(DSL::Maker) do
       add_entrypoint(:wheel, {
@@ -12,7 +9,7 @@ describe "Passing a class into generate_dsl" do
         :maker => String,
       }) do |*args|
         default(:maker, args, 0)
-        $Wheel.new(maker, size)
+        Structs::Wheel.new(maker, size)
       end
     end
 
@@ -22,7 +19,7 @@ describe "Passing a class into generate_dsl" do
         :wheel => wheel_dsl.entrypoint(:wheel),
       }) do |*args|
         default(:maker, args, 0)
-        $Car.new(maker, wheel)
+        Structs::Car.new(maker, wheel)
       end
     end
 
@@ -33,9 +30,9 @@ describe "Passing a class into generate_dsl" do
         end
       end
     end
-    expect(car).to be_instance_of($Car)
+    expect(car).to be_instance_of(Structs::Car)
     expect(car.maker).to eq('honda')
-    expect(car.wheel).to be_instance_of($Wheel)
+    expect(car.wheel).to be_instance_of(Structs::Wheel)
     expect(car.wheel.maker).to eq('goodyear')
     expect(car.wheel.size).to eq(26)
   end
@@ -49,7 +46,7 @@ describe "Passing a class into generate_dsl" do
         :maker => String,
       }) do |*args|
         default(:maker, args, 0)
-        $Wheel.new(maker, size)
+        Structs::Wheel.new(maker, size)
       end
     end
 
@@ -63,7 +60,7 @@ describe "Passing a class into generate_dsl" do
         :wheel => wheel_dsl.entrypoint(:wheel),
       }) do |*args|
         default(:maker, args, 0)
-        $Car.new(maker, wheel)
+        Structs::Car.new(maker, wheel)
       end
     end
 
@@ -74,9 +71,9 @@ describe "Passing a class into generate_dsl" do
         end
       end
     end
-    expect(car).to be_instance_of($Car)
+    expect(car).to be_instance_of(Structs::Car)
     expect(car.maker).to eq('honda')
-    expect(car.wheel).to be_instance_of($Wheel)
+    expect(car.wheel).to be_instance_of(Structs::Wheel)
     expect(car.wheel.maker).to eq('goodyear')
     expect(car.wheel.size).to eq(26)
   end
