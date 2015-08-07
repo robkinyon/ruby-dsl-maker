@@ -1,6 +1,6 @@
 Revision history for DSL::Maker (ordered by revision number).
 
-0.0.8 Aug 0? 2015
+0.0.8 Aug 07 2015
    - Make sure to provide a unique value for each type name.
       - Allow 'Object' to be used as an alias for 'Any'
    - Signficant refactorings (Thanks, "Alex Burkhart <saterus@gmail.com>"!!)
