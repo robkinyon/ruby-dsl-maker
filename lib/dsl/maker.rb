@@ -62,10 +62,6 @@ class DSL::Maker
     __run_dsl { instance_eval(&block) }
   end
 
-  # FIXME: This may have to be changed when the elements can be altered because
-  # it is global to the hierarchy. But, that may be desirable.
-  @@types = {}
-
   # This adds a type coercion that's used when creating the DSL.
   #
   # @note These type coercions are global to all DSLs.
@@ -92,46 +88,6 @@ class DSL::Maker
         end
       end
     }
-
-    return
-  end
-
-  # Add a single element of a DSL to a class representing a level in a DSL.
-  #
-  # Each of the types represents a coercion - a guarantee and check of the value
-  # in that name. The standard type coercions are:
-  #
-  #   * Any  - whatever you give is returned.
-  #   * String  - the string value of whatever you give is returned.
-  #   * Integer - the integer value of whatever you give is returned.
-  #   * Boolean - the truthiness of whatever you give is returned.
-  #   * generate_dsl() - this represents a new level of the DSL.
-  #
-  # @param klass [Class]  The class representing this level in the DSL.
-  # @param name  [String] The name of the element we're working on.
-  # @param type  [Class]  The type of this element we're working on.
-  #                       This is the type coercion spoken above.
-  #
-  # @return   nil
-  #XXX Make this private
-  def self.build_dsl_element(klass, name, type)
-    if @@types.has_key?(type)
-      @@types[type].call(klass, name, type)
-    elsif __is_dsl(type)
-      as_attr = '@' + name.to_s
-      klass.class_eval do
-        define_method(name.to_sym) do |*args, &dsl_block|
-          if (!args.empty? || dsl_block)
-            obj = type.new
-            Docile.dsl_eval(obj, &dsl_block) if dsl_block
-            ___set(as_attr, obj.__apply(*args))
-          end
-          ___get(as_attr)
-        end
-      end
-    else
-      raise "Unrecognized element type '#{type}'"
-    end
 
     return
   end
@@ -293,6 +249,52 @@ class DSL::Maker
   # @return [Binding] The binding of the invoking class.
   def self.get_binding
     binding
+  end
+
+  # This is deliberately global to the hierarchy in order for DSL::Maker to add
+  # the generic types. While this has the potential to cause userspace collisions,
+  # it's highly unlikely that DSLs with divergent types will coexist in the same
+  # Ruby process.
+  @@types = {}
+
+  # Add a single element of a DSL to a class representing a level in a DSL.
+  #
+  # Each of the types represents a coercion - a guarantee and check of the value
+  # in that name. The standard type coercions are:
+  #
+  #   * Any  - whatever you give is returned.
+  #   * String  - the string value of whatever you give is returned.
+  #   * Integer - the integer value of whatever you give is returned.
+  #   * Boolean - the truthiness of whatever you give is returned.
+  #   * generate_dsl() - this represents a new level of the DSL.
+  #
+  # @param klass [Class]  The class representing this level in the DSL.
+  # @param name  [String] The name of the element we're working on.
+  # @param type  [Class]  The type of this element we're working on.
+  #                       This is the type coercion spoken above.
+  #
+  # @return   nil
+
+  def self.build_dsl_element(klass, name, type)
+    if @@types.has_key?(type)
+      @@types[type].call(klass, name, type)
+    elsif __is_dsl(type)
+      as_attr = '@' + name.to_s
+      klass.class_eval do
+        define_method(name.to_sym) do |*args, &dsl_block|
+          if (!args.empty? || dsl_block)
+            obj = type.new
+            Docile.dsl_eval(obj, &dsl_block) if dsl_block
+            ___set(as_attr, obj.__apply(*args))
+          end
+          ___get(as_attr)
+        end
+      end
+    else
+      raise "Unrecognized element type '#{type}'"
+    end
+
+    return
   end
 
   def self.__run_dsl()
