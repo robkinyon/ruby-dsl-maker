@@ -297,7 +297,6 @@ class DSL::Maker
   #                       This is the type coercion spoken above.
   #
   # @return   nil
-
   def self.build_dsl_element(klass, name, type)
     if @@types.has_key?(type)
       @@types[type].call(klass, name, type)

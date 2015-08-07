@@ -7,6 +7,8 @@ Revision history for DSL::Maker (ordered by revision number).
       - Test globals are properly segregated
       - Properly separated the control and DSL classes
    - Verifications can be used at every DSL class level
+   - Moved build_dsl_element() into private. It can still be used within the
+     control class under construction.
 
 0.0.7 Aug 06 2015
    - Added the 'Any' type coercion.
