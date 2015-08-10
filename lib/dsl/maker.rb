@@ -65,6 +65,20 @@ class DSL::Maker
   Yes = On = True = true
   No = Off = False = false
 
+  class Alias
+    attr_reader :real_name
+    def initialize(real_name)
+      @real_name = real_name
+    end
+  end
+  @@aliases = {}
+  def self.AliasOf(name)
+    @@aliases[name] ||= Alias.new(name)
+  end
+  def self.is_alias(thing)
+    thing.instance_of? Alias
+  end
+
   # Parse the DSL provided in the parameter.
   #
   # @note If the DSL contains multiple entrypoints, then this will return an
@@ -328,6 +342,10 @@ class DSL::Maker
           end
           ___get(as_attr)
         end
+      end
+    elsif is_alias(type)
+      klass.class_eval do
+        alias_method name, type.real_name
       end
     else
       raise "Unrecognized element type '#{type}'"

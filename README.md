@@ -402,15 +402,26 @@ were encountered.
 
 ### Type Coercions
 
-There are four pre-defined type coercions for use within `generate_dsl()`:
+There are four pre-defined standard type coercions available for `generate_dsl()`:
 
-  * Any - This takes whatever you give it and returns it back.
-  * String - This takes whatever you give it and returns the string within it.
-  * Integer - This takes whatever you give it and returns the integer within it.
-  * Boolean - This takes whatever you give it and returns the truthiness of it.
-  * `generate_dsl()` - This descends into another level of DSL.
+  Standard coercions:
+    * Any - This takes whatever you give it and returns it back.
+    * String - This takes whatever you give it and returns the string within it.
+    * Integer - This takes whatever you give it and returns the integer within it.
+    * Boolean - This takes whatever you give it and returns the truthiness of it.
 
-You can add additional type coercions using `add_type()` as described above.
+You can add additional standard type coercions using `add_type()` as described
+above.
+
+There are also two special type coercions that are not replicable with `add_type()`
+because they do special manipulations within DSL::Maker.
+
+  Special coercions:
+    * `generate_dsl()` - This descends into another level of DSL.
+    * AliasOf(<name>) - this creates an additional name that is synonomous with
+      the <name> item. You can use either this name or <name>.
+
+These are special-cased within `build_dsl_element()`.
 
 ### Helpers
 

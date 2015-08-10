@@ -40,6 +40,7 @@ module Structs
 
   $toppings = [:cheese, :pepperoni, :bacon, :sauce]
   Pizza = Struct.new(*$toppings)
+  Cheese = Struct.new(:type, :color)
 
   Color = Struct.new(:name)
   Fruit = Struct.new(:name, :color)

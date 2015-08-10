@@ -1,5 +1,9 @@
 Revision history for DSL::Maker (ordered by revision number).
 
+0.0.9 Aug 10 2015
+   - Added the AliasOf(<name>) type to allow for use of multiple names to refer to
+     the same thing.
+
 0.0.8 Aug 07 2015
    - Make sure to provide a unique value for each type name.
       - Allow 'Object' to be used as an alias for 'Any'
