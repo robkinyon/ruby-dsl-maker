@@ -75,8 +75,26 @@ class DSL::Maker
   def self.AliasOf(name)
     @@aliases[name] ||= Alias.new(name)
   end
-  def self.is_alias(thing)
-    thing.instance_of? Alias
+  def self.is_alias(type)
+    type.instance_of? Alias
+  end
+
+  class ArrayType
+    attr_reader :base_type
+    def initialize(base_type)
+      @base_type = base_type
+    end
+  end
+  @@arrays = {}
+  ArrayOf = Class.new do
+    def self.[](type)
+      raise "Cannot make an array of an alias" if DSL::Maker.is_alias(type)
+      raise "Unknown type provided to ArrayOf" unless @@types.has_key?(type) || DSL::Maker.is_dsl(type)
+      @@arrays[type] ||= ArrayType.new(type)
+    end
+  end
+  def self.is_array(type)
+    type.instance_of? ArrayType
   end
 
   # Parse the DSL provided in the parameter.
@@ -128,13 +146,7 @@ class DSL::Maker
     raise "Block required for add_type" unless block_given?
     raise "'#{type}' is already a type coercion" if @@types.has_key? type
 
-    @@types[type] = ->(klass, name, type) {
-      klass.class_eval do
-        define_method(name.to_sym) do |*args|
-          instance_exec('@' + name.to_s, *args, &block)
-        end
-      end
-    }
+    @@types[type] = block
 
     return
   end
@@ -304,6 +316,8 @@ class DSL::Maker
   #   * Integer - the integer value of whatever you give is returned.
   #   * Boolean - the truthiness of whatever you give is returned.
   #   * generate_dsl() - this represents a new level of the DSL.
+  #   * AliasOf(<name>) - this aliases a name to another name.
+  #   * ArrayOf[<type>] - this creates an array of the <type> coercion.
   #
   # @param klass [Class]  The class representing this level in the DSL.
   # @param name  [String] The name of the element we're working on.
@@ -313,7 +327,11 @@ class DSL::Maker
   # @return   nil
   def self.build_dsl_element(klass, name, type)
     if @@types.has_key?(type)
-      @@types[type].call(klass, name, type)
+      klass.class_eval do
+        define_method(name.to_sym) do |*args|
+          instance_exec('@' + name.to_s, *args, &@@types[type])
+        end
+      end
     elsif is_dsl(type)
       as_attr = '@' + name.to_s
       klass.class_eval do
@@ -347,6 +365,42 @@ class DSL::Maker
       klass.class_eval do
         alias_method name, type.real_name
       end
+    elsif is_array(type)
+      as_attr = '@' + name.to_s
+
+      klass.class_eval do
+        define_method(name.to_sym) do |*args, &dsl_block|
+          rv = ___get(as_attr)
+          ___set(as_attr, rv = []) unless rv
+
+          if dsl_block
+            # This code is copy-pasted from the is_dsl() section above. Figure out
+            # how to hoist this code into something reusable. But, we don't need
+            # the parent_class section (do we?)
+            obj = type.base_type.new
+            Docile.dsl_eval(obj, &dsl_block)
+            dsl_value = obj.__apply(*args)
+
+            if v = type.base_type.instance_variable_get(:@verifications)
+              v.each do |verify|
+                failure = verify.call(dsl_value)
+                raise failure if failure
+              end
+            end
+
+            rv.push(dsl_value)
+          elsif !args.empty?
+            rv.concat(
+              args.map do |item|
+                # Assumption: 10x_ will never be used as an attribute name.
+                klass.new.instance_exec('@__________', item, &@@types[type.base_type])
+              end
+            )
+          end
+
+          rv
+        end
+      end
     else
       raise "Unrecognized element type '#{type}'"
     end
@@ -374,7 +428,6 @@ class DSL::Maker
 
   def self.is_entrypoint(name)
     @entrypoints && @entrypoints.has_key?(name.to_sym)
-    #@klass && @klass.new.respond_to?(name.to_sym)
   end
 end
 

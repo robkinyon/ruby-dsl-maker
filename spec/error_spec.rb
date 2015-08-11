@@ -167,5 +167,25 @@ describe "DSL::Maker validation" do
         dsl_class.add_type(String) {}
       }.to raise_error("'String' is already a type coercion")
     end
+
+    it "rejects an ArrayOf[type] if type isn't known" do
+      expect {
+        Class.new(DSL::Maker) do
+          generate_dsl({
+            :foo => DSL::Maker::ArrayOf[:does_not_exist]
+          }) {}
+        end
+      }.to raise_error("Unknown type provided to ArrayOf")
+    end
+
+    it "rejects an ArrayOf[type] if type is an alias" do
+      expect {
+        Class.new(DSL::Maker) do
+          generate_dsl({
+            :foo => DSL::Maker::ArrayOf[DSL::Maker::AliasOf(:foo)]
+          }) {}
+        end
+      }.to raise_error("Cannot make an array of an alias")
+    end
   end
 end

@@ -1,6 +1,7 @@
 Revision history for DSL::Maker (ordered by revision number).
 
-0.0.9 Aug 10 2015
+0.0.9 Aug 11 2015
+   - Added the ArrayOf[<type>] type to allow for arrays to concatenate properly.
    - Added the AliasOf(<name>) type to allow for use of multiple names to refer to
      the same thing.
 

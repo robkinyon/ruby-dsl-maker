@@ -413,11 +413,13 @@ There are four pre-defined standard type coercions available for `generate_dsl()
 You can add additional standard type coercions using `add_type()` as described
 above.
 
-There are also two special type coercions that are not replicable with `add_type()`
-because they do special manipulations within DSL::Maker.
+There are also three special type coercions that are not creatable with
+`add_type()` because they do special manipulations within DSL::Maker.
 
   Special coercions:
     * `generate_dsl()` - This descends into another level of DSL.
+    * ArrayOf[<type>] - This creates an array coerced as the <type>. Successive
+      invocations are concatenated. <type> can be a DSL.
     * AliasOf(<name>) - this creates an additional name that is synonomous with
       the <name> item. You can use either this name or <name>.
 
