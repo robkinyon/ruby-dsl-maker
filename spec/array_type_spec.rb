@@ -23,14 +23,14 @@ describe "Packager DSL ArrayOf" do
         cheeses 'mozzarrella'
       }
     }
-    verify_pizza(pizza, :cheese => %w(cheddar mozzarrella))
+    verify_pizza(pizza[0], :cheese => %w(cheddar mozzarrella))
 
     pizza = dsl_class.execute_dsl {
       pizza {
         cheeses 'cheddar', 'mozzarrella'
       }
     }
-    verify_pizza(pizza, :cheese => %w(cheddar mozzarrella))
+    verify_pizza(pizza[0], :cheese => %w(cheddar mozzarrella))
   end
 
   it "can array a DSL" do
@@ -62,7 +62,7 @@ describe "Packager DSL ArrayOf" do
         }
       }
     }
-    verify_pizza(pizza, :cheese => [
+    verify_pizza(pizza[0], :cheese => [
       Structs::Cheese.new('mozzarrella', 'white'),
       Structs::Cheese.new('cheddar', 'orange'),
     ])
@@ -127,7 +127,7 @@ describe "Packager DSL ArrayOf" do
         end
       }
     }
-    verify_pizza(pizza, :cheese => [
+    verify_pizza(pizza[0], :cheese => [
       Structs::Cheese.new('mozzarrella', 'white'),
       Structs::Cheese.new('cheddar', 'orange'),
     ])

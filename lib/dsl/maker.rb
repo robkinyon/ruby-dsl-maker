@@ -109,7 +109,7 @@ class DSL::Maker
     raise 'Must call add_entrypoint before parse_dsl' unless @klass
     raise 'String required for parse_dsl' unless dsl.instance_of? String
 
-    run_dsl() { eval dsl, @klass.new.get_binding }
+    run_dsl { eval dsl, @klass.new.get_binding }
   end
 
   # Execute the DSL provided in the block.
@@ -124,7 +124,7 @@ class DSL::Maker
     raise 'Must call add_entrypoint before execute_dsl' unless @klass
     raise 'Block required for execute_dsl' unless block_given?
 
-    run_dsl() { @klass.new.instance_eval(&block) }
+    run_dsl { @klass.new.instance_eval(&block) }
   end
 
   # This adds a type coercion that's used when creating the DSL.
@@ -416,9 +416,6 @@ class DSL::Maker
 
     yield
 
-    if @accumulator.length <= 1
-      return @accumulator[0]
-    end
     return @accumulator
   end
 

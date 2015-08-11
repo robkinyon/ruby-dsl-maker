@@ -158,7 +158,7 @@ class PizzaBuilder < DSL::Maker
   end
 end
 
-pizza = PizzaBuilder.parse_dsl("
+pizzas = PizzaBuilder.parse_dsl("
   pizza {
     cheese yes
     pepperoni Yes
@@ -199,7 +199,7 @@ class FamilyTree < DSL::Maker
   end
 end
 
-john_smith = FamilyTree.parse_dsl("
+people = FamilyTree.parse_dsl("
   person {
     name 'John Smith'
     mother {
@@ -210,6 +210,7 @@ john_smith = FamilyTree.parse_dsl("
     }
   }
 ")
+john_smith = people[0]
 ```
 
 Pretty easy. We can even refactor that a bit and end up with:
@@ -261,7 +262,7 @@ class FamilyTreeDSL < DSL::Maker
   end
 end
 
-john_smith = FamilyTreeDSL.parse_dsl("
+people = FamilyTreeDSL.parse_dsl("
   person 'John Smith' do
     age 20
     mother 'Mary Smith' do
@@ -273,6 +274,7 @@ john_smith = FamilyTreeDSL.parse_dsl("
     }
   end
 ")
+john_smith = people[0]
 ```
 
 The result is exactly the same as before.
@@ -304,8 +306,10 @@ Now, we can handle an arbitrarily-deep family tree.
 
 ### Handling multiple items
 
-Chef's recipe files have many entries of different types in them. It doesn't do
-you any good if you can't do the same thing.
+You'll note we've been receiving an Array from `parse_dsl()`. This is because 
+DSL::Maker automagically handles files with multiple entries. Chef's recipe files
+have many entries of different types in them. It doesn't do you any good if you
+can't do the same thing.
 
 ```ruby
 Car = Struct.new(:make, :model)
@@ -341,8 +345,8 @@ vehicles = VehicleDSL.parse_dsl("
 ```
 
 `vehicles` is an `Array` with a `Car` and a `Truck` in it, in that order. If your
-DSL snippet has only one item, you get back that item. If it has multiple items,
-you get back an `Array` with everything in the right order.
+DSL snippet has only one item, you get back an Array with just that item. If it
+has multiple items, you get back an `Array` with everything in the right order.
 
 ## API
 
@@ -394,11 +398,12 @@ This creates global helpers that are available at every level of your DSLs.
 * `parse_dsl(String)` / `execute_dsl(&block)`
 
 You call this on your DSL class when you're ready to invoke your DSL. It will
-return whatever the block provided to `add_entrypoint()` returns.
+return an array containing whatever the block provided to `add_entrypoint()`
+returns.
 
-In the case of multiple DSL entrypoints (for example, a normal Chef recipe),
-these methods will return an array with all the return values in the order they
-were encountered.
+It returns an array for the case of multiple DSL entrypoints (for example, a
+normal Chef recipe). The array will contain the values in the order they were
+encountered.
 
 ### Type Coercions
 
@@ -444,7 +449,6 @@ $ gem install dsl_maker
 
 ## TODO
 
-* Add support for Arrays (ArrayOf[Type]?)
 * Add support for generating useful errors (ideally with line numbers ... ?)
 * Add support for auto-generating documentation
 * Add default block that returns a Struct-of-Structs named after entrypoints

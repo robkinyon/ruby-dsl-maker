@@ -18,7 +18,7 @@ describe 'A multi-level DSL making family-trees' do
       end
     end
 
-    person = dsl_class.parse_dsl('person { name "Tom" }')
+    person = dsl_class.parse_dsl('person { name "Tom" }')[0]
     expect(person).to be_instance_of(Structs::Person)
     expect(person.name).to eq('Tom')
     expect(person.child).to be_nil
@@ -45,7 +45,7 @@ describe 'A multi-level DSL making family-trees' do
           name 'Bill'
         }
       }
-    ")
+    ")[0]
     expect(person).to be_instance_of(Structs::Person)
     expect(person.name).to eq('Tom')
     expect(person.child).to be_instance_of(Structs::Person)
@@ -81,7 +81,7 @@ describe 'A multi-level DSL making family-trees' do
           }
         }
       }
-    ")
+    ")[0]
     expect(person).to be_instance_of(Structs::Person)
     expect(person.name).to eq('Tom')
     expect(person.child).to be_instance_of(Structs::Person)
@@ -137,7 +137,7 @@ describe 'A multi-level DSL making family-trees' do
             }
           }
         }
-      ")
+      ")[0]
 
       [
         'Adam', 'Seth', 'Enos', 'Cainan', 'Mahalaleel', 'Jared',
@@ -170,7 +170,7 @@ describe 'A multi-level DSL making family-trees' do
             name 'Tom Smith'
           }
         }
-      ")
+      ")[0]
 
       expect(person).to be_instance_of(Structs::OtherPerson)
       expect(person.name).to eq('John Smith')

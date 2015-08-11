@@ -22,7 +22,7 @@ describe "Packager DSL AliasOf" do
     pizza = dsl_class.execute_dsl {
       pizza { cheese yes }
     }
-    verify_pizza(pizza, :cheese => true)
+    verify_pizza(pizza[0], :cheese => true)
   end
 
   it "can alias multiple times" do
@@ -39,7 +39,7 @@ describe "Packager DSL AliasOf" do
     pizza = dsl_class.execute_dsl {
       pizza { fromage yes }
     }
-    verify_pizza(pizza, :cheese => true)
+    verify_pizza(pizza[0], :cheese => true)
   end
 
   it "can have many different aliases" do
@@ -60,7 +60,7 @@ describe "Packager DSL AliasOf" do
         bacon yes
       }
     }
-    verify_pizza(pizza, :cheese => true, :bacon => true)
+    verify_pizza(pizza[0], :cheese => true, :bacon => true)
   end
 
   it "can alias a DSL" do
@@ -86,6 +86,6 @@ describe "Packager DSL AliasOf" do
         }
       }
     }
-    verify_pizza(pizza, :cheese => Structs::Cheese.new('mozzarrella', 'white'))
+    verify_pizza(pizza[0], :cheese => Structs::Cheese.new('mozzarrella', 'white'))
   end
 end

@@ -1,5 +1,10 @@
 Revision history for DSL::Maker (ordered by revision number).
 
+0.1.0 Aug 11 2015
+   BREAKING CHANGE:
+   - parse_dsl() and execute_dsl() now always return an array, even if there is
+     only one value. This simplifies code to handle error cases.
+
 0.0.9 Aug 11 2015
    - Added the ArrayOf[<type>] type to allow for arrays to concatenate properly.
    - Added the AliasOf(<name>) type to allow for use of multiple names to refer to

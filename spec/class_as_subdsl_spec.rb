@@ -29,7 +29,7 @@ describe "Passing a class into generate_dsl" do
           size 26
         end
       end
-    end
+    end[0]
     expect(car).to be_instance_of(Structs::Car)
     expect(car.maker).to eq('honda')
     expect(car.wheel).to be_instance_of(Structs::Wheel)
@@ -70,7 +70,7 @@ describe "Passing a class into generate_dsl" do
           size 26
         end
       end
-    end
+    end[0]
     expect(car).to be_instance_of(Structs::Car)
     expect(car.maker).to eq('honda')
     expect(car.wheel).to be_instance_of(Structs::Wheel)

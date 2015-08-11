@@ -28,7 +28,7 @@ describe 'A single-level DSL for pizza' do
       end
 
       pizza = dsl_class.parse_dsl('')
-      expect(pizza).to be(nil)
+      expect(pizza[0]).to be(nil)
     end
 
     it 'with :execute_dsl' do
@@ -39,7 +39,7 @@ describe 'A single-level DSL for pizza' do
       end
 
       pizza = dsl_class.execute_dsl {}
-      expect(pizza).to be(nil)
+      expect(pizza[0]).to be(nil)
     end
   end
 
@@ -51,7 +51,7 @@ describe 'A single-level DSL for pizza' do
     end
 
     pizza = dsl_class.parse_dsl('pizza {}')
-    verify_pizza(pizza)
+    verify_pizza(pizza[0])
   end
 
   # This tests all the possible Boolean invocations
@@ -68,39 +68,39 @@ describe 'A single-level DSL for pizza' do
     # retrieve the value from within the DSL. Therefore, we assume it's a getter
     # and don't default the value to true. Otherwise, false values wouldn't work.
     pizza = dsl_class.parse_dsl('pizza { cheese }')
-    verify_pizza(pizza, :cheese => false)
+    verify_pizza(pizza[0], :cheese => false)
 
     # Test the Ruby booleans and falsey's.
     [ true, false, nil ].each do |cheese|
       pizza = dsl_class.parse_dsl("pizza { cheese #{cheese} }")
-      verify_pizza(pizza, :cheese => !!cheese)
+      verify_pizza(pizza[0], :cheese => !!cheese)
     end
 
     # Test the true values we provide
     %w(Yes On True yes on).each do |cheese|
       pizza = dsl_class.parse_dsl("pizza { cheese #{cheese} }")
-      verify_pizza(pizza, :cheese => true)
+      verify_pizza(pizza[0], :cheese => true)
     end
 
     # Test the false values we provide
     %w(No Off False no off).each do |cheese|
       pizza = dsl_class.parse_dsl("pizza { cheese #{cheese} }")
-      verify_pizza(pizza, :cheese => false)
+      verify_pizza(pizza[0], :cheese => false)
     end
 
     # Test the boolean-ized strings we provide
     %w(Yes On True yes on true).each do |cheese|
       pizza = dsl_class.parse_dsl("pizza { cheese '#{cheese}' }")
-      verify_pizza(pizza, :cheese => true)
+      verify_pizza(pizza[0], :cheese => true)
     end
     %w(No Off False no off false nil).each do |cheese|
       pizza = dsl_class.parse_dsl("pizza { cheese '#{cheese}' }")
-      verify_pizza(pizza, :cheese => false)
+      verify_pizza(pizza[0], :cheese => false)
     end
 
     # Test some other things which should all be true
     pizza = dsl_class.parse_dsl("pizza { cheese 5 }")
-    verify_pizza(pizza, :cheese => true)
+    verify_pizza(pizza[0], :cheese => true)
   end
 
   it 'makes a saucy pizza' do
@@ -121,7 +121,7 @@ describe 'A single-level DSL for pizza' do
         else
           raise "Unexpected class #{level.class}"
       end
-      verify_pizza(pizza, :sauce => level.to_s)
+      verify_pizza(pizza[0], :sauce => level.to_s)
     end
   end
 
@@ -147,7 +147,7 @@ describe 'A single-level DSL for pizza' do
         sauce :extra
       }
     ")
-    verify_pizza(pizza,
+    verify_pizza(pizza[0],
       :sauce => 'extra',
       :pepperoni => true,
       :bacon => false,
@@ -177,7 +177,7 @@ describe 'A single-level DSL for pizza' do
         sauce :extra
       }
     end
-    verify_pizza(pizza,
+    verify_pizza(pizza[0],
       :sauce => 'extra',
       :pepperoni => true,
       :bacon => false,

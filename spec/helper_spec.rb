@@ -18,7 +18,7 @@ describe "A DSL with helpers" do
       car {
         maker transform('Honda')
       }
-    ")
+    ")[0]
     expect(car).to be_instance_of(Structs::Car)
     expect(car.maker).to eq('HONDA')
   end
@@ -51,7 +51,7 @@ describe "A DSL with helpers" do
           maker transform2('goodyear')
         }
       }
-    ")
+    ")[0]
     expect(car).to be_instance_of(Structs::Car)
     expect(car.maker).to eq('Honda')
     expect(car.wheel).to be_instance_of(Structs::Wheel)
