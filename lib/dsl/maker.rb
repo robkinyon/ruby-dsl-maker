@@ -99,12 +99,9 @@ class DSL::Maker
 
   # Parse the DSL provided in the parameter.
   #
-  # @note If the DSL contains multiple entrypoints, then this will return an
-  # Array. This is desirable.
-  #
   # @param dsl [String] The DSL to be parsed by this class.
   #
-  # @return    [Object] Whatever is returned by the block defined in this class.
+  # @return    [Array] Whatever is returned by the block defined in this class.
   def self.parse_dsl(dsl=nil)
     raise 'Must call add_entrypoint before parse_dsl' unless @klass
     raise 'String required for parse_dsl' unless dsl.instance_of? String
@@ -114,12 +111,9 @@ class DSL::Maker
 
   # Execute the DSL provided in the block.
   #
-  # @note If the DSL contains multiple entrypoints, then this will return an
-  # Array. This is desirable.
-  #
   # @param &block [Block] The DSL to be executed by this class.
   #
-  # @return    [Object] Whatever is returned by &block
+  # @return    [Array] Whatever is returned by the block defined in this class.
   def self.execute_dsl(&block)
     raise 'Must call add_entrypoint before execute_dsl' unless @klass
     raise 'Block required for execute_dsl' unless block_given?
