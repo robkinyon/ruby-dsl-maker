@@ -125,29 +125,41 @@ describe "DSL::Maker validation" do
   end
 
   describe "for helpers" do
-    it "rejects a helper without a block" do
-      dsl_class = Class.new(DSL::Maker)
+    context "#add_helper" do
+      it "rejects a helper without a block" do
+        dsl_class = Class.new(DSL::Maker)
 
-      expect {
-        dsl_class.add_helper(:x)
-      }.to raise_error('Block required for add_helper')
-    end
+        expect {
+          dsl_class.add_helper(:x)
+        }.to raise_error('Block required for add_helper')
+      end
 
-    it "rejects the helper name default" do
-      dsl_class = Class.new(DSL::Maker)
+      it "rejects the helper name default" do
+        dsl_class = Class.new(DSL::Maker)
 
-      expect {
-        dsl_class.add_helper(:default) {}
-      }.to raise_error("'default' is already a helper")
-    end
+        expect {
+          dsl_class.add_helper(:default) {}
+        }.to raise_error("'default' is already a helper")
+      end
 
-    it "rejects a helper name already in use" do
-      dsl_class = Class.new(DSL::Maker)
-      dsl_class.add_helper(:x) {}
-
-      expect {
+      it "rejects a helper name already in use" do
+        dsl_class = Class.new(DSL::Maker)
         dsl_class.add_helper(:x) {}
-      }.to raise_error("'x' is already a helper")
+
+        expect {
+          dsl_class.add_helper(:x) {}
+        }.to raise_error("'x' is already a helper")
+      end
+    end
+
+    context "#remove_helper" do
+      it "rejects a helper name not already in use" do
+        dsl_class = Class.new(DSL::Maker)
+
+        expect {
+          dsl_class.remove_helper(:x)
+        }.to raise_error("'x' is not a helper")
+      end
     end
   end
 

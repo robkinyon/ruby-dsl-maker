@@ -1,5 +1,10 @@
 Revision history for DSL::Maker (ordered by revision number).
 
+0.1.1 Aug 24 2015
+   - add_helper() no longer pollutes DSL::Maker::Base
+   - Add remove_helper() and has_helper?()
+   - Rename is_dsl() to is_dsl?()
+
 0.1.0 Aug 11 2015
    BREAKING CHANGE:
    - parse_dsl() and execute_dsl() now always return an array, even if there is

@@ -89,7 +89,7 @@ class DSL::Maker
   ArrayOf = Class.new do
     def self.[](type)
       raise "Cannot make an array of an alias" if DSL::Maker.is_alias(type)
-      raise "Unknown type provided to ArrayOf" unless @@types.has_key?(type) || DSL::Maker.is_dsl(type)
+      raise "Unknown type provided to ArrayOf" unless @@types.has_key?(type) || DSL::Maker.is_dsl?(type)
       @@arrays[type] ||= ArrayType.new(type)
     end
   end
@@ -134,7 +134,7 @@ class DSL::Maker
   # and ___set() available for your use. These are aliases to
   # instance_variable_get and instance_variable_set, respectively. Please read the
   # coercions provided for you in this source file as examples.
-  # 
+  #
   # @return nil
   def self.add_type(type, &block)
     raise "Block required for add_type" unless block_given?
@@ -160,7 +160,7 @@ class DSL::Maker
   def self.generate_dsl(args={}, &defn_block)
     raise 'Block required for generate_dsl' unless block_given?
 
-    dsl_class = Class.new(DSL::Maker::Base) do
+    dsl_class = Class.new(base_class) do
       include DSL::Maker::Boolean
 
       class << self
@@ -193,7 +193,7 @@ class DSL::Maker
   # @param name  [String] the name of the entrypoint
   # @param args  [Hash]   the elements of the DSL block (passed to generate_dsl)
   # @param defn_block [Proc]   what is executed once the DSL block is parsed.
-  # 
+  #
   # @return      [Class]  The class that implements this level's DSL definition.
   def self.add_entrypoint(name, args={}, &defn_block)
     symname = name.to_sym
@@ -202,7 +202,7 @@ class DSL::Maker
       raise "'#{name.to_s}' is already an entrypoint"
     end
 
-    if is_dsl(args)
+    if is_dsl?(args)
       dsl_class = args
     else
       # Without defn_block, there's no way to give back the result of the
@@ -212,7 +212,7 @@ class DSL::Maker
       raise "Block required for add_entrypoint" unless block_given?
       dsl_class = generate_dsl(args, &defn_block)
     end
-    
+
     if @klass
       build_dsl_element(@klass, symname, dsl_class)
     else
@@ -235,7 +235,7 @@ class DSL::Maker
   # This returns the DSL corresponding to the entrypoint's name.
   #
   # @param name  [String] the name of the entrypoint
-  # 
+  #
   # @return      [Class]  The class that implements this name's DSL definition.
   def self.entrypoint(name)
     unless is_entrypoint(name)
@@ -251,20 +251,44 @@ class DSL::Maker
   #
   # @param name   [String] the name of the helper
   # @param &block [Block]  The function to be executed when the helper is called.
-  # 
+  #
   # @return nil
   def self.add_helper(name, &block)
     raise "Block required for add_helper" unless block_given?
 
-    if DSL::Maker::Base.new.respond_to? name.to_sym
+    if has_helper? name
       raise "'#{name.to_s}' is already a helper"
     end
 
-    DSL::Maker::Base.class_eval do
+    base_class.class_eval do
       define_method(name.to_sym, &block)
     end
 
     return
+  end
+
+  # This removes a helper function that's been added with #add_helper
+  #
+  # @param name   [String] the name of the helper
+  #
+  # @return nil
+  def self.remove_helper(name)
+    unless has_helper? name
+      raise "'#{name.to_s}' is not a helper"
+    end
+
+    base_class.class_eval do
+      remove_method(name.to_sym)
+    end
+  end
+
+  # This returns if the helper has been added with #add_helper
+  #
+  # @param name   [String] the name of the helper
+  #
+  # @return Boolean
+  def self.has_helper?(name)
+    base_class.method_defined?(name.to_sym)
   end
 
   # This adds a verification that's executed after the DSL is finished parsing.
@@ -283,7 +307,7 @@ class DSL::Maker
   #
   # @param name   [String] the name of the entrypoint to add a verification to
   # @param &block [Block]  The function to be executed when verifications execute
-  # 
+  #
   # @return nil
   def self.add_verification(name, &block)
     raise "Block required for add_verification" unless block_given?
@@ -326,7 +350,7 @@ class DSL::Maker
           instance_exec('@' + name.to_s, *args, &@@types[type])
         end
       end
-    elsif is_dsl(type)
+    elsif is_dsl?(type)
       as_attr = '@' + name.to_s
       klass.class_eval do
         define_method(name.to_sym) do |*args, &dsl_block|
@@ -368,7 +392,7 @@ class DSL::Maker
           ___set(as_attr, rv = []) unless rv
 
           if dsl_block
-            # This code is copy-pasted from the is_dsl() section above. Figure out
+            # This code is copy-pasted from the is_dsl?() section above. Figure out
             # how to hoist this code into something reusable. But, we don't need
             # the parent_class section (do we?)
             obj = type.base_type.new
@@ -413,12 +437,27 @@ class DSL::Maker
     return @accumulator
   end
 
-  def self.is_dsl(proto)
+  def self.is_dsl?(proto)
     proto.is_a?(Class) && proto.ancestors.include?(DSL::Maker::Base)
   end
 
   def self.is_entrypoint(name)
     @entrypoints && @entrypoints.has_key?(name.to_sym)
+  end
+
+  def self.base_class
+    # This is the only time we *know* that the :default helper doesn't exist yet.
+    unless @base_class
+      @base_class = Class.new(DSL::Maker::Base)
+      add_helper(:default) do |method_name, args, position=0|
+        method = method_name.to_sym
+        if args.length >= (position + 1) && !self.send(method)
+          self.send(method, args[position])
+        end
+        return
+      end
+    end
+    @base_class
   end
 end
 
@@ -440,19 +479,4 @@ DSL::Maker.add_type(DSL::Maker::Boolean) do |attr, *args|
   ___set(attr, DSL::Maker::Boolean.coerce(args[0])) unless args.empty?
   # Ensure that the default nil also returns as false.
   !!___get(attr)
-end
-
-# A helper method for handling defaults from args easily.
-#
-# @param method_name [String]  The name of the attribute being defaulted.
-# @param args        [Array]   The arguments provided to the block.
-# @param position    [Integer] The index in args to work with, default 0.
-#
-# @return nil
-DSL::Maker.add_helper(:default) do |method_name, args, position=0|
-  method = method_name.to_sym
-  if args.length >= (position + 1) && !self.send(method)
-    self.send(method, args[position])
-  end
-  return
 end
