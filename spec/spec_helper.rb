@@ -46,3 +46,4 @@ module Structs
   Fruit = Struct.new(:name, :color)
 end
 
+$:.push 'spec/lib'
