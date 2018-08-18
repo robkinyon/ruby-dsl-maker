@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = '>= 1.9.3'
 
-  s.add_dependency 'docile', '~> 1.1', '>= 1.1.0'
+  s.add_dependency 'docile'
 
   # Run rspec tests from rake
   s.add_development_dependency 'rake'
