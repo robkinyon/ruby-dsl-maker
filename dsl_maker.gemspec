@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.email   = 'rob.kinyon@gmail.com'
   s.summary = 'Easy multi-level DSLs'
   s.description = 'Easy multi-level DSLs, built on top of Docile'
-  s.license = 'GPL2'
+  s.license = 'MIT'
   s.homepage = 'https://github.com/robkinyon/ruby-dsl-maker'
 
   s.files         = `git ls-files`.split("\n")
