@@ -302,7 +302,8 @@ class FamilyTreeDSL < DSL::Maker
 end
 ```
 
-Now, we can handle an arbitrarily-deep family tree.
+Now, we can handle an arbitrarily-deep family tree. This is the DSL used in the
+multi-level spec tests.
 
 ### Handling multiple items
 
