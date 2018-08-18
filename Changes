@@ -1,5 +1,8 @@
 Revision history for DSL::Maker (ordered by revision number).
 
+1.0.0 Aug 24 2018
+   - The license has changed from GPLv2 to MIT
+
 0.1.1 Aug 24 2015
    - add_helper() no longer pollutes DSL::Maker::Base
    - Add remove_helper() and has_helper?()
