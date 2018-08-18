@@ -8,6 +8,7 @@ Revision history for DSL::Maker (ordered by revision number).
       - is_alias() to is_alias?()
       - is_array() to is_array?()
       - is_entrypoint() to is_entrypoint?()
+   - ArrayOf types now take an Array as well as a list.
 
 0.1.1 Aug 24 2015
    - add_helper() no longer pollutes DSL::Maker::Base

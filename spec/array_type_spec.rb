@@ -7,7 +7,7 @@ describe "Packager DSL ArrayOf" do
     end
   end
 
-  it "can array a String" do
+  context "can array a String" do
     dsl_class = Class.new(DSL::Maker) do
       add_entrypoint(:pizza, {
         :cheeses => DSL::Maker::ArrayOf[String],
@@ -17,20 +17,33 @@ describe "Packager DSL ArrayOf" do
       }
     end
 
-    pizza = dsl_class.execute_dsl {
-      pizza {
-        cheeses :cheddar
-        cheeses 'mozzarrella'
+    it 'can take two invocations' do
+      pizza = dsl_class.execute_dsl {
+        pizza {
+          cheeses :cheddar
+          cheeses 'mozzarrella'
+        }
       }
-    }
-    verify_pizza(pizza[0], :cheese => %w(cheddar mozzarrella))
+      verify_pizza(pizza[0], :cheese => %w(cheddar mozzarrella))
+    end
 
-    pizza = dsl_class.execute_dsl {
-      pizza {
-        cheeses 'cheddar', 'mozzarrella'
+    it 'can take a list' do
+      pizza = dsl_class.execute_dsl {
+        pizza {
+          cheeses 'cheddar', 'mozzarrella'
+        }
       }
-    }
-    verify_pizza(pizza[0], :cheese => %w(cheddar mozzarrella))
+      verify_pizza(pizza[0], :cheese => %w(cheddar mozzarrella))
+    end
+
+    it 'can take an array' do
+      pizza = dsl_class.execute_dsl {
+        pizza {
+          cheeses [ 'cheddar', 'mozzarrella' ]
+        }
+      }
+      verify_pizza(pizza[0], :cheese => %w(cheddar mozzarrella))
+    end
   end
 
   it "can array a DSL" do

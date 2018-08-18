@@ -409,8 +409,7 @@ class DSL::Maker
             rv.push(dsl_value)
           elsif !args.empty?
             rv.concat(
-              args.map do |item|
-                # Assumption: 10x_ will never be used as an attribute name.
+              args.flatten.map do |item|
                 klass.new.instance_exec('@__________', item, &@@types[type.base_type])
               end
             )
