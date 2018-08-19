@@ -10,7 +10,9 @@ require File.expand_path('on_what', File.dirname(__FILE__))
 task :default => [:spec]
 
 # Use default rspec rake task
-RSpec::Core::RakeTask.new
+RSpec::Core::RakeTask.new do |t|
+  t.verbose = false
+end
 
 # Configure `rake clobber` to delete all generated files
 CLOBBER.include('pkg', 'doc', 'coverage', '*.gem')
