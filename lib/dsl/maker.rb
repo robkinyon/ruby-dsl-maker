@@ -75,7 +75,7 @@ class DSL::Maker
   def self.AliasOf(name)
     @@aliases[name] ||= Alias.new(name)
   end
-  def self.is_alias(type)
+  def self.is_alias?(type)
     type.instance_of? Alias
   end
 
@@ -88,12 +88,12 @@ class DSL::Maker
   @@arrays = {}
   ArrayOf = Class.new do
     def self.[](type)
-      raise "Cannot make an array of an alias" if DSL::Maker.is_alias(type)
+      raise "Cannot make an array of an alias" if DSL::Maker.is_alias?(type)
       raise "Unknown type provided to ArrayOf" unless @@types.has_key?(type) || DSL::Maker.is_dsl?(type)
       @@arrays[type] ||= ArrayType.new(type)
     end
   end
-  def self.is_array(type)
+  def self.is_array?(type)
     type.instance_of? ArrayType
   end
 
@@ -198,7 +198,7 @@ class DSL::Maker
   def self.add_entrypoint(name, args={}, &defn_block)
     symname = name.to_sym
 
-    if is_entrypoint(symname)
+    if is_entrypoint?(symname)
       raise "'#{name.to_s}' is already an entrypoint"
     end
 
@@ -238,7 +238,7 @@ class DSL::Maker
   #
   # @return      [Class]  The class that implements this name's DSL definition.
   def self.entrypoint(name)
-    unless is_entrypoint(name)
+    unless is_entrypoint?(name)
       raise "'#{name.to_s}' is not an entrypoint"
     end
 
@@ -311,7 +311,7 @@ class DSL::Maker
   # @return nil
   def self.add_verification(name, &block)
     raise "Block required for add_verification" unless block_given?
-    raise "'#{name.to_s}' is not an entrypoint for a verification" unless is_entrypoint(name)
+    raise "'#{name.to_s}' is not an entrypoint for a verification" unless is_entrypoint?(name)
 
     @entrypoints[name.to_sym].add_verification(&block)
   end
@@ -379,11 +379,11 @@ class DSL::Maker
           ___get(as_attr)
         end
       end
-    elsif is_alias(type)
+    elsif is_alias?(type)
       klass.class_eval do
         alias_method name, type.real_name
       end
-    elsif is_array(type)
+    elsif is_array?(type)
       as_attr = '@' + name.to_s
 
       klass.class_eval do
@@ -409,8 +409,7 @@ class DSL::Maker
             rv.push(dsl_value)
           elsif !args.empty?
             rv.concat(
-              args.map do |item|
-                # Assumption: 10x_ will never be used as an attribute name.
+              args.flatten.map do |item|
                 klass.new.instance_exec('@__________', item, &@@types[type.base_type])
               end
             )
@@ -441,7 +440,7 @@ class DSL::Maker
     proto.is_a?(Class) && proto.ancestors.include?(DSL::Maker::Base)
   end
 
-  def self.is_entrypoint(name)
+  def self.is_entrypoint?(name)
     @entrypoints && @entrypoints.has_key?(name.to_sym)
   end
 
