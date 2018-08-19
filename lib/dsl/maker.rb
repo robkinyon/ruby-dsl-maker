@@ -153,7 +153,11 @@ class DSL::Maker
   #
   # The creation of each DSL element is delegated to build_dsl_element.
   #
-  # @param args  [Hash]   the elements of the DSL block (passed to generate_dsl)
+  # There are some special keys within args that are treated differently:
+  #     * __name__ - This must be a String. It will be used as the name of the DSL class. This is most useful for debugging.
+  #     * __inspect__ - This must be a Proc. It will be set to the :to_s and :inspect methods of the DSL class. This is most useful for debugging.
+  #
+  # @param args  [Hash]   the elements of the DSL block
   # @param defn_block [Proc]   what is executed once the DSL block is parsed.
   #
   # @return      [Class]  The class that implements this level's DSL definition.
@@ -169,6 +173,18 @@ class DSL::Maker
 
       define_method(:__apply) do |*args|
         instance_exec(*args, &defn_block)
+      end
+    end
+
+    if args.has_key? '__name__'
+      Object.const_set(args.delete('__name__'), dsl_class)
+    end
+
+    if args.has_key? '__inspect__'
+      f = args.delete '__inspect__'
+      dsl_class.class_eval do
+        define_method(:to_s, f)
+        define_method(:inspect, f)
       end
     end
 

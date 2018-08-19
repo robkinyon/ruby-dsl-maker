@@ -1,6 +1,11 @@
 Revision history for DSL::Maker (ordered by revision number).
 
-1.0.0 Aug 24 2018
+1.0.1 Aug 19 2018
+   - Add support for the following special keys in the DSL definition:
+      - __name__ - String, for naming the DSL class.
+      - __inspect__ - Proc, sets the to_s() and inspect() methods.
+
+1.0.0 Aug 18 2018
    - The license has changed from GPLv2 to MIT
       - This is a breaking change, hence the increment to 1.0.0
    - Update minimum dependencies to address vulnerabilities

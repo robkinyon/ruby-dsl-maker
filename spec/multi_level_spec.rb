@@ -153,6 +153,10 @@ describe 'A multi-level DSL making family-trees' do
     xit "can handle two axes of recursion" do
       dsl_class = Class.new(DSL::Maker) do
         person_dsl = add_entrypoint(:person, {
+          '__name__' => 'Person',
+          '__inspect__' => Proc.new do
+            "(name: #{name || 'none'}, id #{"0x00%x" % (object_id << 1)})"
+          end,
           :name => String,
         }) do
           Structs::OtherPerson.new(name, mother, father)
@@ -163,26 +167,34 @@ describe 'A multi-level DSL making family-trees' do
 
       person = dsl_class.parse_dsl("
         person {
-          name 'John Smith'
+          puts \"John: \#{self}\"
+          name 'John'
+          puts \"John: \#{self}\"
           mother {
-            name 'Mary Smith'
+            puts \"  Mary: \#{self}\"
+            name 'Mary'
+            puts \"  Mary: \#{self}\"
           }
+          puts \"John: \#{self}\"
           father {
-            name 'Tom Smith'
+            puts \"  Thom: \#{self}\"
+            name 'Thom'
+            puts \"  Thom: \#{self}\"
           }
+          puts \"John: \#{self}\"
         }
       ")[0]
 
       expect(person).to be_instance_of(Structs::OtherPerson)
-      expect(person.name).to eq('John Smith')
+      expect(person.name).to eq('John')
 
       mother = person.mother
       expect(mother).to be_instance_of(Structs::OtherPerson)
-      expect(mother.name).to eq('Mary Smith')
+      expect(mother.name).to eq('Mary')
 
       father = person.father
       expect(father).to be_instance_of(Structs::OtherPerson)
-      expect(father.name).to eq('Tom Smith')
+      expect(father.name).to eq('Thom')
     end
   end
 end
