@@ -2,20 +2,9 @@ language: ruby
 cache: bundler
 rvm:
   - ruby-head
+  - 2.4
   - 2.3
   - 2.2
   - 2.1
   - 2.0.0
   - 1.9.3
-  - rbx-2
-matrix:
-  include:
-    - rvm: jruby-head
-      env: JRUBY_OPTS="$JRUBY_OPTS -Xcli.debug=true --debug"  # for simplecov
-    - rvm: jruby-21mode
-      env: JRUBY_OPTS="$JRUBY_OPTS -Xcli.debug=true --debug"  # for simplecov
-    - rvm: jruby-20mode
-      env: JRUBY_OPTS="$JRUBY_OPTS -Xcli.debug=true --debug"  # for simplecov
-    - rvm: jruby-19mode
-      env: JRUBY_OPTS="$JRUBY_OPTS -Xcli.debug=true --debug"  # for simplecov
-  fast_finish: true
