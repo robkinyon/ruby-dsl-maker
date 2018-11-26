@@ -97,6 +97,20 @@ class DSL::Maker
     type.instance_of? ArrayType
   end
 
+  class HashType
+    def initialize(rv)
+      @rv = rv
+    end
+
+    def respond_to_missing?(*args)
+      true
+    end
+
+    def method_missing(methname, *args)
+      @rv[methname.to_s] = args[0] unless methname.to_s =~ /__.*__/
+    end
+  end
+
   # Parse the DSL provided in the parameter.
   #
   # @param dsl [String] The DSL to be parsed by this class.
@@ -350,6 +364,28 @@ class DSL::Maker
           instance_exec('@' + name.to_s, *args, &@@types[type])
         end
       end
+    elsif is_hash?(type)
+      as_attr = '@' + name.to_s
+
+      klass.class_eval do
+        define_method(name.to_sym) do |*args, &dsl_block|
+          if (!args.empty? || dsl_block)
+            rv = {}
+            Docile.dsl_eval(HashType.new(rv), &dsl_block) if dsl_block
+
+            # This is the one place where we pull out the entrypoint results and
+            # put them into the control class.
+            if klass.parent_class
+              # Use the full instance_variable_get() in order to avoid having to
+              # create accessors that could be misused outside this class.
+              klass.parent_class.instance_variable_get(:@accumulator).push(rv)
+            end
+
+            ___set(as_attr, rv)
+          end
+          ___get(as_attr)
+        end
+      end
     elsif is_dsl?(type)
       as_attr = '@' + name.to_s
       klass.class_eval do
@@ -426,14 +462,18 @@ class DSL::Maker
   end
 
   def self.run_dsl()
-    # build_dsl_element() will use @accumulator to handle multiple entrypoints if
-    # the class in question is a root DSL class. Reset it here so that we're only
-    # handling the values from this run.
+    # build_dsl_element() will use @accumulator to handle multiple entrypoints
+    # if the class in question is a root DSL class. Reset it here so that we're
+    # only handling the values from this run.
     @accumulator = []
 
     yield
 
     return @accumulator
+  end
+
+  def self.is_hash?(proto)
+    proto == Hash
   end
 
   def self.is_dsl?(proto)

@@ -1,5 +1,8 @@
 Revision history for DSL::Maker (ordered by revision number).
 
+1.0.1 Nov 25 2018
+   - Add support for Hash
+
 1.0.0 Aug 24 2018
    - The license has changed from GPLv2 to MIT
       - This is a breaking change, hence the increment to 1.0.0

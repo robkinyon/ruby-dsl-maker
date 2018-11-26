@@ -44,6 +44,8 @@ module Structs
 
   Color = Struct.new(:name)
   Fruit = Struct.new(:name, :color)
+
+  Taggable = Struct.new(:name, :tags)
 end
 
 $:.push 'spec/lib'

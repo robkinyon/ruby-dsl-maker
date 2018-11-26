@@ -57,9 +57,9 @@ Then, use it as so:
 ```ruby
 #!/usr/bin/env ruby
 
-require ‘vehicle/dsl’
+require 'vehicle/dsl'
 
-filename = ARGV.shift || raise “No filename provided.”
+filename = ARGV.shift || raise 'No filename provided.'
 
 # This raises the error
 vehicles = Vehicle::DSL.parse_dsl(
@@ -408,13 +408,14 @@ encountered.
 
 ### Type Coercions
 
-There are four pre-defined standard type coercions available for `generate_dsl()`:
+There are five pre-defined standard type coercions available for `generate_dsl()`:
 
   Standard coercions:
     * Any - This takes whatever you give it and returns it back.
     * String - This takes whatever you give it and returns the string within it.
     * Integer - This takes whatever you give it and returns the integer within it.
     * Boolean - This takes whatever you give it and returns the truthiness of it.
+    * Hash - This takes a block and returns a Hash of the method calls.
 
 You can add additional standard type coercions using `add_type()` as described
 above.
