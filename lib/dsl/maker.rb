@@ -235,7 +235,7 @@ class DSL::Maker
       # block around the DSL that we are not putting into place in :parse_dsl or
       # :execute_dsl.
       @klass = generate_dsl({
-        symname => dsl_class
+        symname => dsl_class,
       }) {}
 
       # This marks @klass as the root DSL class.
@@ -366,21 +366,11 @@ class DSL::Maker
       end
     elsif is_hash?(type)
       as_attr = '@' + name.to_s
-
       klass.class_eval do
         define_method(name.to_sym) do |*args, &dsl_block|
           if (!args.empty? || dsl_block)
             rv = {}
             Docile.dsl_eval(HashType.new(rv), &dsl_block) if dsl_block
-
-            # This is the one place where we pull out the entrypoint results and
-            # put them into the control class.
-            if klass.parent_class
-              # Use the full instance_variable_get() in order to avoid having to
-              # create accessors that could be misused outside this class.
-              klass.parent_class.instance_variable_get(:@accumulator).push(rv)
-            end
-
             ___set(as_attr, rv)
           end
           ___get(as_attr)
